@@ -13,3 +13,4 @@ coverage/
 apps/api/uploads/
 *.tsbuildinfo
 next-env.d.ts
+.claude/
