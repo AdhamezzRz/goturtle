@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply min-h-screen bg-ink-50 text-ink-900 dark:bg-ink-950 dark:text-ink-100; }
+  body.font-arabic { font-family: 'Cairo', 'Inter', system-ui, sans-serif; }
+  :focus-visible { @apply outline-none ring-2 ring-turtle-500/60 ring-offset-1; }
+  /* Numbers & codes keep LTR order inside RTL text */
+  .ltr { direction: ltr; unicode-bidi: isolate; }
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+  .gt-pin { background: transparent; border: 0; }
+  .gt-pin-pulse { position: relative; width: 32px; height: 32px; }
+  .gt-pin-pulse::before {
+    content: ''; position: absolute; inset: -6px; border-radius: 9999px; background: var(--c); opacity: .25;
+    animation: gt-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite;
+  }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+}
+
+@keyframes gt-ping { 75%, 100% { transform: scale(1.8); opacity: 0; } }
+
+.leaflet-container { font: inherit; background: #eef1f4; }
+.dark .leaflet-tile-pane { filter: brightness(.75) contrast(1.1) saturate(.8); }
+
+/* Printing: AWB labels (4x6in) and manifests */
+@media print {
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .label-sheet { page-break-after: always; break-after: page; }
+}
+.print-only { display: none; }
