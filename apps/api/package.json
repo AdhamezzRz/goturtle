@@ -2,7 +2,7 @@
   "name": "@goturtle/api",
   "version": "1.0.0",
   "private": true,
-  "description": "GoTurtle logistics ERP — REST API (NestJS + Drizzle + MySQL/MariaDB). Also serves the web portals in production.",
+  "description": "GoTurtle logistics ERP \u2014 REST API (NestJS + Drizzle + MySQL/MariaDB). Also serves the web portals in production.",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -62,6 +62,10 @@
       "<rootDir>/test"
     ],
     "testRegex": ".*\\.spec\\.ts$",
-    "testTimeout": 30000
+    "testTimeout": 30000,
+    "setupFiles": [
+      "<rootDir>/test/env.ts"
+    ],
+    "globalSetup": "<rootDir>/test/global-setup.ts"
   }
 }
