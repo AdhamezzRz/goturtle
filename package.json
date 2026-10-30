@@ -1,0 +1,25 @@
+{
+  "name": "goturtle",
+  "private": true,
+  "version": "1.0.0",
+  "description": "GoTurtle — last-mile logistics ERP for Egypt (Ops, Brand, Hero and Client portals) in one Node.js app",
+  "workspaces": ["packages/shared", "apps/web", "apps/api"],
+  "engines": { "node": ">=20.11" },
+  "main": "server.js",
+  "scripts": {
+    "build": "npm run build -w @goturtle/shared && npm run build -w @goturtle/web && npm run build -w @goturtle/api",
+    "start": "node server.js",
+    "dev": "npm run build -w @goturtle/shared && concurrently -n api,web -c green,cyan \"npm run dev -w @goturtle/api\" \"npm run dev -w @goturtle/web\"",
+    "typecheck": "npm run build -w @goturtle/shared && npm run typecheck -w @goturtle/api && npm run typecheck -w @goturtle/web",
+    "test": "npm run build -w @goturtle/shared && npm test -w @goturtle/shared && npm test -w @goturtle/api",
+    "db:generate": "npm run db:generate -w @goturtle/api",
+    "db:migrate": "npm run db:migrate -w @goturtle/api",
+    "db:seed": "npm run db:seed -w @goturtle/api"
+  },
+  "dependencies": {
+    "typescript": "~5.9.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
