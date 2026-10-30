@@ -1,4 +1,5 @@
 import 'dotenv/config';
+// Used by `npm run db:generate` (drizzle-kit is fetched on demand via npx, not installed).
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({

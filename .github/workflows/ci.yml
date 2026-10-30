@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mariadb:
+        # Same engine family Hostinger runs
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_USER: goturtle
+          MARIADB_PASSWORD: goturtle
+          MARIADB_DATABASE: goturtle_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      TEST_DATABASE_URL: mysql://root:root@127.0.0.1:3306/goturtle_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit & e2e tests (MariaDB)
+        run: npm test
+      - name: Production build
+        run: npm run build
