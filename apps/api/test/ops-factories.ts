@@ -6,7 +6,51 @@ import { newId } from '../src/db/columns';
 import { sha256 } from '../src/common/crypto';
 import { hashPassword } from '../src/modules/auth/auth.service';
 import { LedgerService } from '../src/core/ledger/ledger.service';
-import type { TestContext } from './helpers';
+import { JwtService } from '@nestjs/jwt';
+import { config } from '../src/config';
+import { createDb } from '../src/db/client';
+import { createTestApp, type TestContext } from './helpers';
+
+/**
+ * createTestApp() with one retry: test files boot in parallel and the core
+ * BootstrapService can race on inserting the bootstrap admin (duplicate key).
+ */
+export async function bootTestApp(): Promise<TestContext> {
+  await ensureBootstrapAdmin();
+  try {
+    return await createTestApp();
+  } catch (err) {
+    if (!String((err as Error)?.message ?? err).includes('Duplicate entry') && !String((err as { cause?: unknown })?.cause ?? '').includes('Duplicate entry')) throw err;
+    return createTestApp();
+  }
+}
+
+/**
+ * Creates the bootstrap super admin (same values BootstrapService uses, from
+ * test/env.ts) up front, so parallel test files do not race on inserting it.
+ */
+async function ensureBootstrapAdmin() {
+  const { db, pool } = createDb(process.env.DATABASE_URL!, { connectionLimit: 1 });
+  try {
+    const phone = process.env.BOOTSTRAP_ADMIN_PHONE!;
+    await db
+      .insert(s.users)
+      .values({ name: 'GoTurtle Admin', phone, email: process.env.BOOTSTRAP_ADMIN_EMAIL!.toLowerCase(), passwordHash: await hashPassword(process.env.BOOTSTRAP_ADMIN_PASSWORD!), role: 'SUPER_ADMIN', locale: 'en' })
+      .onDuplicateKeyUpdate({ set: { phone } });
+  } finally {
+    await pool.end();
+  }
+}
+
+/** Access token for a user without going through the (rate-limited) login endpoint. */
+export async function tokenFor(t: TestContext, userId: string, role: string): Promise<string> {
+  return t.app.get(JwtService).signAsync({ sub: userId, typ: 'access', role }, { secret: config.jwt.accessSecret, expiresIn: '30m' });
+}
+
+/** Customer session token for a phone (same payload as POST /auth/customer/verify). */
+export async function customerTokenFor(t: TestContext, phoneE164: string, trackingNumber: string | null = null): Promise<string> {
+  return t.app.get(JwtService).signAsync({ sub: phoneE164, typ: 'customer', cid: null, tn: trackingNumber, name: 'Customer' }, { secret: config.jwt.accessSecret, expiresIn: '30m' });
+}
 
 export type Agent = {
   get: (url: string) => request.Test;
@@ -73,18 +117,15 @@ export async function createTestBrand(t: TestContext, opts: { zone?: string; sta
   });
   const ownerPhone = `+2011${randomDigits(8)}`;
   const password = 'Owner@2026x';
-  await t.db.insert(s.users).values({ name: `Owner ${code}`, phone: ownerPhone, role: 'BRAND_OWNER', brandId, passwordHash: await hashPassword(password) });
+  const ownerId = newId();
+  await t.db.insert(s.users).values({ id: ownerId, name: `Owner ${code}`, phone: ownerPhone, role: 'BRAND_OWNER', brandId, passwordHash: await hashPassword(password) });
   const locationId = newId();
   await t.db.insert(s.brandLocations).values({
     id: locationId, brandId, name: 'Main warehouse', contactName: `Owner ${code}`, phone: ownerPhone, addressLine: '45 Makram Ebeid, Nasr City',
     zoneId: await zoneId(t, opts.zone ?? 'CAI-NASR'), lat: 30.0583, lng: 31.3446, isDefault: true,
   });
-  const login = async () => {
-    const res = await t.http().post('/api/v1/auth/login').send({ identifier: ownerPhone, password });
-    if (res.status !== 200) throw new Error(`brand login failed ${res.status} ${JSON.stringify(res.body)}`);
-    return bearer(t, res.body.accessToken);
-  };
-  return { brandId, code, locationId, ownerPhone, login };
+  const login = async () => bearer(t, await tokenFor(t, ownerId, 'BRAND_OWNER'));
+  return { brandId, code, locationId, ownerPhone, ownerId, password, login };
 }
 
 /** Inserts an API key row (the API keys module is owned elsewhere) and returns the raw key. */

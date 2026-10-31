@@ -1,15 +1,15 @@
 import { eq } from 'drizzle-orm';
 import { isValidTrackingNumber } from '@goturtle/shared';
 import * as s from '../src/db/schema';
-import { createTestApp, type TestContext } from './helpers';
-import { brandByCode, createApiKey, createTestBrand, orderBody, randomPhone, withApiKey, zoneId } from './ops-factories';
+import type { TestContext } from './helpers';
+import { bootTestApp, brandByCode, createApiKey, createTestBrand, orderBody, randomPhone, withApiKey, zoneId } from './ops-factories';
 
 const API = '/api/v1';
 
 describe('Orders (e2e)', () => {
   let t: TestContext;
   beforeAll(async () => {
-    t = await createTestApp();
+    t = await bootTestApp();
   });
   afterAll(() => t.close());
 
