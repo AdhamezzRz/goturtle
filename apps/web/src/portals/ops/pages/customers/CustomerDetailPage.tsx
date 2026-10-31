@@ -87,7 +87,7 @@ export default function CustomerDetailPage() {
             <MiniStat label={t('ops.customers.d.returned')} value={num(s.returned)} />
             <MiniStat label={t('ops.customers.d.active')} value={num(s.active)} />
             <MiniStat label={t('ops.customers.d.cancelled')} value={num(s.cancelled)} />
-            <MiniStat label={t('ops.customers.d.success')} value={s.successRate == null ? '—' : pct(s.successRate > 1 ? s.successRate / 100 : s.successRate)} />
+            <MiniStat label={t('ops.customers.d.success')} value={s.successRate == null ? '—' : pct(s.successRate / 100)} />
             <MiniStat label={t('ops.customers.d.failedAttempts')} value={num(s.failedAttempts)} />
             <MiniStat label={t('ops.customers.d.collected')} value={money(s.collectedCents)} tone="cash" />
             <MiniStat label={t('ops.customers.d.avgCod')} value={money(s.avgCodCents)} />
