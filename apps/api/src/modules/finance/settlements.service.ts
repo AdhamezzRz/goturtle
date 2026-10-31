@@ -3,13 +3,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, asc, count, desc, eq, gte, inArray, isNull, like, lt, lte, ne, or, sql, type SQL } from 'drizzle-orm';
 import type { SettlementCycle, SettlementStatus } from '@goturtle/shared';
 import type { Db, DbOrTx } from '../../db/client';
-import { brands, ledgerAccounts, ledgerEntries, ledgerTransactions, orders, settlements } from '../../db/schema';
+import { brands, orders, settlements } from '../../db/schema';
 import { InjectDb } from '../../core/database.module';
 import { AuditService } from '../../core/audit.service';
 import { JobsService } from '../../core/jobs.service';
 import { SequenceService } from '../../core/sequence.service';
 import { PostingsService } from '../../core/ledger/postings.service';
-import { CompanyAccounts, describeRef } from '../../core/ledger/accounts';
 import { DomainEvents, type SettlementPaidEvent } from '../../core/events';
 import { DomainError, notFound } from '../../common/errors';
 import { offsetOf, paginate } from '../../common/pagination';
@@ -19,6 +18,7 @@ import type { RequestMetaInfo } from '../../common/decorators';
 import { cairoToday, likeEscape, loadByIds } from '../../db/helpers';
 import { addDays, cairoDayStart, csvRow, dayDiff, egp, resolveDayRange, toNumber, weekdayOf } from '../couriers/workforce.util';
 import type { ListSettlementsQuery } from './dto/finance.dto';
+import { SettlementNettingService } from './settlement-netting.service';
 
 type SettlementRow = typeof settlements.$inferSelect;
 type BrandRow = typeof brands.$inferSelect;
@@ -62,6 +62,7 @@ export class SettlementsService implements OnModuleInit {
     private readonly sequences: SequenceService,
     private readonly postings: PostingsService,
     private readonly events: EventEmitter2,
+    private readonly netting: SettlementNettingService,
   ) {}
 
   onModuleInit() {
@@ -98,13 +99,17 @@ export class SettlementsService implements OnModuleInit {
   async generateForBrand(brandId: string, periodEnd: Date, principal: Principal | null, meta: RequestMetaInfo | null): Promise<string | null> {
     return this.db.transaction(async (tx) => {
       await tx.select({ id: brands.id }).from(brands).where(eq(brands.id, brandId)).for('update');
+      // Postings to this wallet wait for us, so balance, open settlements and pending orders are one consistent picture.
+      const wallet = await this.netting.lockWallet(tx, brandId);
       const finalAt = sql`coalesce(${orders.deliveredAt}, ${orders.returnedAt}, ${orders.updatedAt})`;
       const candidates = await tx
         .select({ id: orders.id, deliveredAt: orders.deliveredAt, returnedAt: orders.returnedAt, updatedAt: orders.updatedAt })
         .from(orders)
         .where(and(eq(orders.brandId, brandId), inArray(orders.status, ['DELIVERED', 'RETURNED']), isNull(orders.settlementId), lte(finalAt, periodEnd)))
         .for('update');
-      if (!candidates.length) return null;
+      // Unpaid non-order movements (early payouts, claims, advance fees …) computed before the orders are linked.
+      const { residualCents } = await this.netting.residual(tx, brandId, wallet);
+      if (!candidates.length && residualCents <= 0) return null;
 
       const [previous] = await tx
         .select({ periodEnd: settlements.periodEnd })
@@ -128,7 +133,11 @@ export class SettlementsService implements OnModuleInit {
       for (let i = 0; i < ids.length; i += 500) {
         await tx.update(orders).set({ settlementId: row.id }).where(and(inArray(orders.id, ids.slice(i, i + 500)), isNull(orders.settlementId)));
       }
-      const totals = await this.computeTotals(tx, row.id, brandId);
+      const orderPart = await this.computeTotals(tx, row.id, brandId);
+      // Outstanding COD advances come back first, within what this settlement can absorb.
+      const recovered = await this.netting.recoverAdvances(tx, brandId, row.id, Math.max(0, orderPart.netPayableCents + residualCents), principalUserId(principal));
+      const adjustmentsCents = SettlementNettingService.adjustmentFor(residualCents - recovered, orderPart.netPayableCents);
+      const totals = { ...orderPart, adjustmentsCents, netPayableCents: orderPart.netPayableCents + adjustmentsCents };
       await tx.update(settlements).set(totals).where(eq(settlements.id, row.id));
       await this.audit.record(principal, { action: 'settlement.generate', entity: 'Settlement', entityId: row.id, after: { code, brandId, periodEnd, ...totals } }, meta, tx);
       return row.id;
@@ -136,41 +145,21 @@ export class SettlementsService implements OnModuleInit {
   }
 
   /**
-   * Totals straight from the ledger: fees = brand-wallet debits of the linked
-   * orders' transactions (minus fee reversals), VAT = their 2300 credits.
+   * Order part of the totals straight from the ledger: COD = brand-wallet
+   * collection credits of the linked orders, fees = their wallet debits minus
+   * any other credits (fee reversals), VAT = their 2300 credits. Adjustments
+   * (early payouts, advance recoveries, claims …) are added by generation —
+   * see SettlementNettingService.
    */
   async computeTotals(tx: DbOrTx, settlementId: string, brandId: string) {
-    const walletCode = describeRef({ brandWallet: brandId }).code;
-    const [[ord], [led]] = await Promise.all([
-      tx
-        .select({
-          n: count(),
-          cod: sql<number>`coalesce(sum(case when ${orders.status} = 'DELIVERED' then ${orders.collectedCents} else 0 end), 0)`.mapWith(Number),
-        })
-        .from(orders)
-        .where(eq(orders.settlementId, settlementId)),
-      tx
-        .select({
-          walletDebits: sql<number>`coalesce(sum(case when ${ledgerAccounts.code} = ${walletCode} then ${ledgerEntries.debitCents} else 0 end), 0)`.mapWith(Number),
-          feeReversals: sql<number>`coalesce(sum(case when ${ledgerAccounts.code} = ${walletCode} and ${ledgerTransactions.kind} = 'FEE_REVERSAL' then ${ledgerEntries.creditCents} else 0 end), 0)`.mapWith(Number),
-          vat: sql<number>`coalesce(sum(case when ${ledgerAccounts.code} = ${CompanyAccounts.VAT_PAYABLE.code} then ${ledgerEntries.creditCents} - ${ledgerEntries.debitCents} else 0 end), 0)`.mapWith(Number),
-        })
-        .from(ledgerEntries)
-        .innerJoin(ledgerTransactions, eq(ledgerTransactions.id, ledgerEntries.transactionId))
-        .innerJoin(ledgerAccounts, eq(ledgerAccounts.id, ledgerEntries.accountId))
-        .innerJoin(orders, eq(orders.id, ledgerTransactions.orderId))
-        .where(eq(orders.settlementId, settlementId)),
-    ]);
-    const codCollectedCents = toNumber(ord?.cod);
-    const feesCents = toNumber(led?.walletDebits) - toNumber(led?.feeReversals);
-    const adjustmentsCents = 0;
+    const o = await this.netting.orderTotals(tx, settlementId, brandId);
     return {
-      ordersCount: Number(ord?.n ?? 0),
-      codCollectedCents,
-      feesCents,
-      vatCents: toNumber(led?.vat),
-      adjustmentsCents,
-      netPayableCents: codCollectedCents - feesCents + adjustmentsCents,
+      ordersCount: o.ordersCount,
+      codCollectedCents: o.codCollectedCents,
+      feesCents: o.feesCents,
+      vatCents: o.vatCents,
+      adjustmentsCents: 0,
+      netPayableCents: o.netCents,
     };
   }
 
@@ -204,8 +193,9 @@ export class SettlementsService implements OnModuleInit {
   async approve(id: string, principal: Principal, meta: RequestMetaInfo) {
     await this.db.transaction(async (tx) => {
       const s = await this.lockOpen(tx, id, ['DRAFT'], 'approved');
-      // Re-derive from the ledger in case postings changed after generation.
-      const totals = await this.computeTotals(tx, id, s.brandId);
+      // Re-derive the order part from the ledger in case postings changed after generation; adjustments stay as netted.
+      const orderPart = await this.computeTotals(tx, id, s.brandId);
+      const totals = { ...orderPart, adjustmentsCents: s.adjustmentsCents, netPayableCents: orderPart.netPayableCents + s.adjustmentsCents };
       await tx.update(settlements).set({ ...totals, status: 'APPROVED', approvedById: principalUserId(principal), approvedAt: new Date() }).where(eq(settlements.id, id));
       await this.audit.record(principal, { action: 'settlement.approve', entity: 'Settlement', entityId: id, before: { status: s.status, netPayableCents: s.netPayableCents }, after: { status: 'APPROVED', ...totals } }, meta, tx);
     });
@@ -291,13 +281,12 @@ export class SettlementsService implements OnModuleInit {
     const s = await this.getRow(id, brandScope);
     const [view] = await this.present([s]);
     const [brand] = await this.db.select({ payoutDetails: brands.payoutDetails, legalName: brands.legalName, taxId: brands.taxId }).from(brands).where(eq(brands.id, s.brandId)).limit(1);
-    const lines = await this.lines(s);
-    return { ...view, brand: view.brand ? { ...view.brand, ...brand } : null, lines, linesCount: lines.length };
+    const [lines, adjustmentLines] = await Promise.all([this.lines(s), this.netting.adjustmentLines(this.db, s)]);
+    return { ...view, brand: view.brand ? { ...view.brand, ...brand } : null, lines, linesCount: lines.length, adjustmentLines };
   }
 
   async lines(s: SettlementRow) {
-    const walletCode = describeRef({ brandWallet: s.brandId }).code;
-    const [orderRows, fees] = await Promise.all([
+    const [orderRows, money] = await Promise.all([
       this.db
         .select({
           id: orders.id, trackingNumber: orders.trackingNumber, brandReference: orders.brandReference, status: orders.status,
@@ -308,23 +297,11 @@ export class SettlementsService implements OnModuleInit {
         .where(eq(orders.settlementId, s.id))
         .orderBy(asc(orders.deliveredAt), asc(orders.returnedAt), asc(orders.id))
         .limit(20_000),
-      this.db
-        .select({
-          orderId: ledgerTransactions.orderId,
-          fees: sql<number>`coalesce(sum(${ledgerEntries.debitCents}), 0) - coalesce(sum(case when ${ledgerTransactions.kind} = 'FEE_REVERSAL' then ${ledgerEntries.creditCents} else 0 end), 0)`.mapWith(Number),
-        })
-        .from(ledgerEntries)
-        .innerJoin(ledgerTransactions, eq(ledgerTransactions.id, ledgerEntries.transactionId))
-        .innerJoin(ledgerAccounts, eq(ledgerAccounts.id, ledgerEntries.accountId))
-        .innerJoin(orders, eq(orders.id, ledgerTransactions.orderId))
-        .where(and(eq(orders.settlementId, s.id), eq(ledgerAccounts.code, walletCode)))
-        .groupBy(ledgerTransactions.orderId),
+      this.netting.orderLines(this.db, s.id, s.brandId),
     ]);
-    const feeMap = new Map(fees.map((f) => [f.orderId!, toNumber(f.fees)]));
     return orderRows.map((o) => {
-      const cod = o.status === 'DELIVERED' ? o.collectedCents : 0;
-      const fee = feeMap.get(o.id) ?? 0;
-      return { ...o, codCents: cod, feesCents: fee, netCents: cod - fee };
+      const m = money.get(o.id) ?? { codCents: 0, feesCents: 0 };
+      return { ...o, codCents: m.codCents, feesCents: m.feesCents, netCents: m.codCents - m.feesCents };
     });
   }
 
@@ -350,6 +327,9 @@ export class SettlementsService implements OnModuleInit {
       ...d.lines.map((l) =>
         csvRow([l.trackingNumber, l.brandReference ?? '', l.status, l.recipientName, (l.deliveredAt ?? l.returnedAt)?.toISOString() ?? '', egp(l.codCents), egp(l.feesCents), egp(l.netCents)]),
       ),
+      ...(d.adjustmentLines.length
+        ? ['', csvRow(['Adjustment', 'Reference', 'Date', 'Amount (EGP)']), ...d.adjustmentLines.map((a) => csvRow([a.description, a.reference ?? '', a.createdAt?.toISOString() ?? '', egp(a.amountCents)]))]
+        : []),
     ];
     return { filename: `${d.code}${d.invoiceNumber ? `_${d.invoiceNumber}` : ''}.csv`, content: `﻿${rows.join('\r\n')}\r\n` };
   }

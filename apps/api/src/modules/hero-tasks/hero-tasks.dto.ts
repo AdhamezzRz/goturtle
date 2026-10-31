@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsInt, IsLatitude, IsLongitude, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
-import { FailureReason } from '@goturtle/shared';
+import { CollectionMethod, FailureReason } from '@goturtle/shared';
 
 export class PositionDto {
   @ApiPropertyOptional() @IsOptional() @IsLatitude() lat?: number;
@@ -14,6 +14,10 @@ export class DeliverDto extends PositionDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) signatureUrl?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) receivedBy?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) note?: string;
+  @ApiPropertyOptional({ enum: CollectionMethod, default: 'CASH', description: 'How the recipient paid. Non-cash never enters the hero custody; finance confirms it.' })
+  @IsOptional() @IsIn(Object.values(CollectionMethod)) collectionMethod?: CollectionMethod;
+  @ApiPropertyOptional({ description: 'Transfer / card slip reference (required for INSTAPAY, WALLET and CARD)' })
+  @IsOptional() @IsString() @MaxLength(120) collectionReference?: string;
 }
 
 export class FailDto extends PositionDto {

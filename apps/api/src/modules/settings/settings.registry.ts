@@ -44,11 +44,36 @@ export interface BrandingSettings {
   primaryColor: string;
 }
 
+export interface FinanceSettings {
+  /** Company InstaPay address shown to recipients paying at the door. */
+  instapayAddress: string;
+  /** Company mobile wallet (Vodafone Cash, Orange Cash …) for door payments. */
+  walletNumber: string;
+  acceptedCollectionMethods: Array<'CASH' | 'INSTAPAY' | 'WALLET' | 'CARD' | 'PAYMENT_LINK'>;
+  /** Fee on early payouts of the wallet balance, basis points (100 = 1 %). */
+  earlyPayoutFeeBp: number;
+  /** Fee on advances against in-transit COD, basis points. */
+  codAdvanceFeeBp: number;
+  /** Max share of in-transit COD that can be advanced, basis points (5000 = 50 %). */
+  codAdvanceMaxRateBp: number;
+  advanceMinCents: number;
+  /** Liability cap for claims when the order has no declared value. */
+  claimDefaultCapCents: number;
+  /** Damaged / missing / wrong item claims must be filed within this many hours of delivery or return. */
+  claimWindowHours: number;
+  weightToleranceGrams: number;
+  weightTolerancePct: number;
+  /** Volumetric weight (kg) = L × W × H (cm) / divisor. */
+  volumetricDivisor: number;
+  weightDisputeWindowHours: number;
+}
+
 export interface SettingsMap {
   company: CompanySettings;
   notifications: NotificationSettings;
   operations: OperationsSettings;
   branding: BrandingSettings;
+  finance: FinanceSettings;
 }
 export type SettingKey = keyof SettingsMap;
 
@@ -56,7 +81,9 @@ type FieldSpec =
   | { type: 'string'; max: number; pattern?: RegExp; format?: 'email' | 'url' | 'mobile' | 'phone' }
   | { type: 'boolean' }
   | { type: 'int'; min: number; max: number }
-  | { type: 'enum'; values: readonly string[] };
+  | { type: 'enum'; values: readonly string[] }
+  /** A set of enum values (stored de-duplicated, in the order of `values`). */
+  | { type: 'enumList'; values: readonly string[]; minItems?: number };
 
 interface SettingDefinition<T> {
   description: string;
@@ -133,6 +160,39 @@ export const SETTINGS: { [K in SettingKey]: SettingDefinition<SettingsMap[K]> } 
     defaults: { primaryColor: '#1E8E5A' },
     fields: { primaryColor: { type: 'string', max: 7, pattern: /^#[0-9A-Fa-f]{6}$/ } },
   },
+  finance: {
+    description: 'Digital payment at the door, early payouts & COD advances, claims and hub weighing rules',
+    defaults: {
+      instapayAddress: '',
+      walletNumber: '',
+      acceptedCollectionMethods: ['CASH', 'INSTAPAY', 'WALLET', 'CARD', 'PAYMENT_LINK'],
+      earlyPayoutFeeBp: 100,
+      codAdvanceFeeBp: 250,
+      codAdvanceMaxRateBp: 5000,
+      advanceMinCents: 10_000,
+      claimDefaultCapCents: 500_000,
+      claimWindowHours: 72,
+      weightToleranceGrams: 200,
+      weightTolerancePct: 10,
+      volumetricDivisor: 5000,
+      weightDisputeWindowHours: 48,
+    },
+    fields: {
+      instapayAddress: { type: 'string', max: 120, pattern: /^[A-Za-z0-9._-]+@[A-Za-z0-9._-]+$|^\+?[0-9 ]{8,20}$/ },
+      walletNumber: { type: 'string', max: 20, format: 'mobile' },
+      acceptedCollectionMethods: { type: 'enumList', values: ['CASH', 'INSTAPAY', 'WALLET', 'CARD', 'PAYMENT_LINK'], minItems: 1 },
+      earlyPayoutFeeBp: { type: 'int', min: 0, max: 2000 },
+      codAdvanceFeeBp: { type: 'int', min: 0, max: 2000 },
+      codAdvanceMaxRateBp: { type: 'int', min: 0, max: 9000 },
+      advanceMinCents: { type: 'int', min: 100, max: 100_000_000 },
+      claimDefaultCapCents: { type: 'int', min: 0, max: 100_000_000 },
+      claimWindowHours: { type: 'int', min: 1, max: 2160 },
+      weightToleranceGrams: { type: 'int', min: 0, max: 50_000 },
+      weightTolerancePct: { type: 'int', min: 0, max: 100 },
+      volumetricDivisor: { type: 'int', min: 1000, max: 10_000 },
+      weightDisputeWindowHours: { type: 'int', min: 1, max: 720 },
+    },
+  },
 };
 
 export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
@@ -194,6 +254,9 @@ function checkField(spec: FieldSpec, value: unknown): string | null {
       return value < spec.min || value > spec.max ? `Must be between ${spec.min} and ${spec.max}` : null;
     case 'enum':
       return typeof value === 'string' && spec.values.includes(value) ? null : `Must be one of ${spec.values.join(', ')}`;
+    case 'enumList':
+      if (!Array.isArray(value) || value.some((v) => typeof v !== 'string' || !spec.values.includes(v))) return `Must be a list of ${spec.values.join(', ')}`;
+      return new Set(value).size < (spec.minItems ?? 0) ? `Choose at least ${spec.minItems}` : null;
     case 'string': {
       if (typeof value !== 'string') return 'Must be a string';
       const v = value.trim();
@@ -210,6 +273,7 @@ function checkField(spec: FieldSpec, value: unknown): string | null {
 }
 
 function normalizeField(spec: FieldSpec, value: unknown): unknown {
+  if (spec.type === 'enumList') return spec.values.filter((v) => (value as string[]).includes(v));
   if (spec.type !== 'string') return value;
   const v = String(value).trim();
   if (spec.format === 'mobile' && v) return normalizeEgyptPhone(v);

@@ -24,6 +24,13 @@ type HandoverRow = typeof cashHandovers.$inferSelect;
 
 const NON_CASH: HandoverMethod[] = ['INSTAPAY', 'VODAFONE_CASH', 'BANK_TRANSFER', 'FAWRY'];
 
+/**
+ * Delivered orders whose money the hero holds as cash: cash collections and
+ * digital ones finance rejected (InstaPay / wallet / card / payment-link
+ * collections never enter custody — see the money-programs module).
+ */
+const HERO_OWES_CASH = or(isNull(orders.collectionMethod), eq(orders.collectionMethod, 'CASH'), eq(orders.collectionStatus, 'REJECTED'))!;
+
 /** Hub operators only see their own hub's cash desk. */
 export function hubScope(p: Principal): string | null {
   return p.kind === 'user' && p.role === 'HUB_OPERATOR' && p.hubId ? p.hubId : null;
@@ -164,7 +171,7 @@ export class CashService {
     const candidates = await tx
       .select({ id: orders.id, collectedCents: orders.collectedCents })
       .from(orders)
-      .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, isNull(orders.cashHandoverId)))
+      .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, HERO_OWES_CASH, isNull(orders.cashHandoverId)))
       .orderBy(asc(orders.deliveredAt), asc(orders.id))
       .limit(2000)
       .for('update');
@@ -333,7 +340,7 @@ export class CashService {
         ? this.db
             .select({ courierId: orders.courierId, n: count(), oldest: sql<Date | null>`min(${orders.deliveredAt})`, total: sql<number>`coalesce(sum(${orders.collectedCents}), 0)`.mapWith(Number) })
             .from(orders)
-            .where(and(inArray(orders.courierId, ids), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, isNull(orders.cashHandoverId)))
+            .where(and(inArray(orders.courierId, ids), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, HERO_OWES_CASH, isNull(orders.cashHandoverId)))
             .groupBy(orders.courierId)
         : Promise.resolve([]),
       ids.length
@@ -487,13 +494,13 @@ export class CashService {
         .select({ id: orders.id, trackingNumber: orders.trackingNumber, brandName: brands.name, recipientName: orders.recipientName, collectedCents: orders.collectedCents, deliveredAt: orders.deliveredAt })
         .from(orders)
         .leftJoin(brands, eq(brands.id, orders.brandId))
-        .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, isNull(orders.cashHandoverId)))
+        .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, HERO_OWES_CASH, isNull(orders.cashHandoverId)))
         .orderBy(asc(orders.deliveredAt), asc(orders.id))
         .limit(200),
       this.db
         .select({ n: count(), total: sql<number>`coalesce(sum(${orders.collectedCents}), 0)`.mapWith(Number) })
         .from(orders)
-        .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, isNull(orders.cashHandoverId))),
+        .where(and(eq(orders.courierId, courierId), eq(orders.status, 'DELIVERED'), sql`${orders.collectedCents} > 0`, HERO_OWES_CASH, isNull(orders.cashHandoverId))),
       this.pendingDeclared(this.db, courierId),
       this.outstandingShortage(courierId),
     ]);

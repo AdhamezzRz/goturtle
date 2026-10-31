@@ -19,6 +19,8 @@ export const TEMPLATE_NAMES = [
   'user_invited', 'temp_password', 'settlement_paid',
   'ticket_created', 'ticket_reply', 'ticket_assigned', 'ticket_sla_breached',
   'brand_registered', 'brand_approved', 'webhook_disabled', 'payment_link', 'integration_error',
+  // v1.1 money programs & quality
+  'collection_rejected', 'advance_requested', 'advance_update', 'claim_filed', 'claim_update', 'weight_adjusted', 'weight_dispute_resolved',
 ] as const;
 export type TemplateName = (typeof TEMPLATE_NAMES)[number];
 
@@ -159,6 +161,42 @@ export const TEMPLATES: Record<TemplateName, TemplateDef> = {
     ar: { title: 'مشكلة في ربط {{provider}}', body: 'طلب {{reference}} من {{shop}} لم يتم إنشاؤه: {{error}}' },
     en: { title: '{{provider}} sync problem', body: 'Order {{reference}} from {{shop}} was not created: {{error}}' },
     params: ['provider', 'reference', 'shop', 'error'],
+  },
+  // ------------------------------------------------------------- v1.1 money programs & quality
+  collection_rejected: {
+    ar: { title: 'تحويل غير مستلم {{tn}}', body: 'لم يصل تحويل {{amount}} لشحنة {{tn}}. المبلغ اتضاف لعهدتك النقدية: {{note}}' },
+    en: { title: 'Transfer not received {{tn}}', body: 'The {{amount}} transfer for {{tn}} never arrived. It was added to your cash custody: {{note}}' },
+    params: ['tn', 'amount', 'note'],
+  },
+  advance_requested: {
+    ar: { title: 'طلب {{type}} {{code}}', body: '{{brand}} طلب {{amount}} ({{type}}). راجع الطلب.' },
+    en: { title: '{{type}} request {{code}}', body: '{{brand}} requested {{amount}} ({{type}}). Please review it.' },
+    params: ['type', 'code', 'brand', 'amount'],
+  },
+  advance_update: {
+    ar: { title: 'طلبك {{code}}: {{status}}', body: '{{type}} بقيمة {{amount}} — {{status}}. {{note}}', email: 'طلبك {{code}} ({{type}}) بقيمة {{amount}} أصبح: {{status}}.\n{{note}}\n\nالتفاصيل: {{link}}' },
+    en: { title: 'Your request {{code}}: {{status}}', body: '{{type}} of {{amount}} — {{status}}. {{note}}', email: 'Your request {{code}} ({{type}}) for {{amount}} is now {{status}}.\n{{note}}\n\nDetails: {{link}}' },
+    params: ['code', 'type', 'amount', 'status'],
+  },
+  claim_filed: {
+    ar: { title: 'مطالبة جديدة {{code}}', body: '{{brand}}: {{type}} على {{tn}} بقيمة {{amount}}.' },
+    en: { title: 'New claim {{code}}', body: '{{brand}}: {{type}} on {{tn}} for {{amount}}.' },
+    params: ['code', 'brand', 'type', 'tn', 'amount'],
+  },
+  claim_update: {
+    ar: { title: 'المطالبة {{code}}: {{status}}', body: 'مطالبتك {{code}} على {{tn}} أصبحت {{status}}. {{note}}', email: 'مطالبتك {{code}} على الشحنة {{tn}} أصبحت: {{status}}.\n{{note}}\n\nالتفاصيل: {{link}}' },
+    en: { title: 'Claim {{code}}: {{status}}', body: 'Your claim {{code}} on {{tn}} is now {{status}}. {{note}}', email: 'Your claim {{code}} on {{tn}} is now {{status}}.\n{{note}}\n\nDetails: {{link}}' },
+    params: ['code', 'tn', 'status', 'note'],
+  },
+  weight_adjusted: {
+    ar: { title: 'تعديل وزن {{tn}}', body: 'الشحنة {{tn}} اتوزنت {{billable}} بدل {{declared}}. فرق الرسوم {{amount}}. تقدر تعترض خلال {{hours}} ساعة.' },
+    en: { title: 'Weight adjusted {{tn}}', body: '{{tn}} weighed {{billable}} (declared {{declared}}). Extra fee {{amount}}. You can dispute within {{hours}} h.' },
+    params: ['tn', 'billable', 'declared', 'amount', 'hours'],
+  },
+  weight_dispute_resolved: {
+    ar: { title: 'نتيجة اعتراض الوزن {{tn}}', body: 'اعتراضك على وزن {{tn}}: {{decision}}. {{note}}' },
+    en: { title: 'Weight dispute {{tn}} resolved', body: 'Your weight dispute on {{tn}}: {{decision}}. {{note}}' },
+    params: ['tn', 'decision', 'note'],
   },
 };
 

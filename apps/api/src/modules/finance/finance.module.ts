@@ -8,6 +8,7 @@ import { AdjustmentsService } from './adjustments.service';
 import { FinanceReportsService } from './finance-reports.service';
 import { BrandFinanceService } from './brand-finance.service';
 import { HeroLedgerService } from './hero-ledger.service';
+import { SettlementNettingService } from './settlement-netting.service';
 
 /**
  * Brand settlements (+ hourly `finance.settlements` job), hero payroll,
@@ -15,7 +16,7 @@ import { HeroLedgerService } from './hero-ledger.service';
  */
 @Module({
   controllers: [SettlementsController, PayoutsController, AdjustmentsController, BrandFinanceController, FinanceReportsController],
-  providers: [SettlementsService, PayrollService, AdjustmentsService, FinanceReportsService, BrandFinanceService, HeroLedgerService],
-  exports: [SettlementsService, PayrollService, AdjustmentsService, FinanceReportsService, HeroLedgerService],
+  providers: [SettlementsService, PayrollService, AdjustmentsService, FinanceReportsService, BrandFinanceService, HeroLedgerService, SettlementNettingService],
+  exports: [SettlementsService, PayrollService, AdjustmentsService, FinanceReportsService, HeroLedgerService, SettlementNettingService],
 })
 export class FinanceModule {}

@@ -10,7 +10,7 @@ import { couriers, deliveryAttempts, orderEvents, orders, runsheets } from '../.
 import { InjectDb } from '../../core/database.module';
 import { AuditService } from '../../core/audit.service';
 import { OtpService } from '../../core/otp.service';
-import { PostingsService } from '../../core/ledger/postings.service';
+import { PostingsService, type DoorCollection } from '../../core/ledger/postings.service';
 import { CoreEvents, type OrderStatusChangedEvent, type OtpRequestedEvent } from '../../core/events';
 import { DomainError, notFound } from '../../common/errors';
 import { SYSTEM_ACTOR, type ActorContext } from '../../common/actor';
@@ -233,7 +233,7 @@ export class OrderWorkflowService {
 
     if (to === 'DELIVERED') {
       const courier = updated.courierId ? await this.courier(tx, updated.courierId) : null;
-      await this.postings.orderDelivered(tx, updated, courier, actor.actorId);
+      await this.postings.orderDelivered(tx, updated, courier, actor.actorId, (opts.extensions?.collection as DoorCollection | undefined) ?? null);
       await this.customers.recordDelivered(tx, order.customerId);
       await tx.insert(deliveryAttempts).values({
         orderId, courierId: requireCourier(updated.courierId), attemptNo: order.attempts + 1, success: true,
