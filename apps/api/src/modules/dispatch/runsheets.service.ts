@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, gte, inArray, lte, ne, sql } from 'drizzle-orm';
-import { DomainEvents, optimizeRoute, ORDER_STATUS_LABELS, formatEgyptPhone, type OrderStatus } from '@goturtle/shared';
+import { DomainEvents, ORDER_STATUS_LABELS, formatEgyptPhone, type OrderStatus } from '@goturtle/shared';
 import type { Db, DbOrTx, Tx } from '../../db/client';
 import { brands, couriers, hubs, orders, runsheets, users, zones, type RouteStopJson } from '../../db/schema';
 import { InjectDb } from '../../core/database.module';
@@ -17,6 +17,7 @@ import { OrderWorkflowService } from '../orders/order-workflow.service';
 import { OrdersService } from '../orders/orders.service';
 import { assertDayInRange, auditPrincipal, mapsLink, round2, type PostCommit } from '../orders/ops-kit';
 import type { RunsheetListQuery } from './dispatch.dto';
+import { RoutingService } from './routing/routing.service';
 
 export type RunsheetRow = typeof runsheets.$inferSelect;
 
@@ -51,6 +52,7 @@ export class RunsheetsService {
     private readonly network: NetworkService,
     private readonly workflow: OrderWorkflowService,
     private readonly orders: OrdersService,
+    private readonly routing: RoutingService,
   ) {}
 
   // ------------------------------------------------------------------ writes
@@ -154,7 +156,8 @@ export class RunsheetsService {
   }
 
   /**
-   * Nearest-neighbour + 2-opt over the open stops, starting at the hero's
+   * Nearest-neighbour + 2-opt over the open stops on the routing provider's
+   * travel-time matrix (haversine / OSRM / Google), starting at the hero's
    * fresh GPS position (once on the road) or the hub. Served stops keep their
    * place at the start of the route. ETAs are minutes after dispatch.
    */
@@ -172,7 +175,7 @@ export class RunsheetsService {
       open.push({ id: s.id, lat: s.lat ?? zone!.centerLat, lng: s.lng ?? zone!.centerLng });
     }
     const start = fresh ? { lat: courier.lastLat!, lng: courier.lastLng! } : hub ? { lat: hub.lat, lng: hub.lng } : open[0] ?? { lat: 30.0444, lng: 31.2357 };
-    const plan = optimizeRoute(start, open, { vehicle: courier.vehicleType });
+    const plan = await this.routing.plan(start, open, { vehicle: courier.vehicleType });
     const offset = rs.dispatchedAt ? Math.max(0, Math.round((now.getTime() - rs.dispatchedAt.getTime()) / 60_000)) : 0;
     const previous = (rs.route ?? []).filter((r) => stops.some((s) => s.id === r.orderId && !OPEN_STOP.includes(s.status)));
     const route: RouteStopJson[] = [

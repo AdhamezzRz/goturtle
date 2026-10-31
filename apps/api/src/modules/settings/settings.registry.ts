@@ -44,11 +44,30 @@ export interface BrandingSettings {
   primaryColor: string;
 }
 
+/** A demand multiplier for a date range (Ramadan, White Friday, Eid …), Cairo days inclusive. */
+export interface ForecastEvent {
+  name: string;
+  from: string;
+  to: string;
+  multiplier: number;
+}
+
+export interface PlatformSettings {
+  /** Parcels one hero delivers in a shift — staffing = ceil(forecast / this). */
+  ordersPerHeroPerShift: number;
+  forecastEvents: ForecastEvent[];
+  /** Default per-parcel fee owed to a partner carrier (piasters) when the partner has none. */
+  partnerFeeCents: number;
+  /** Travel-time source for route optimisation (osrm / google need OSRM_URL / GOOGLE_MAPS_API_KEY). */
+  routingProvider: 'haversine' | 'osrm' | 'google';
+}
+
 export interface SettingsMap {
   company: CompanySettings;
   notifications: NotificationSettings;
   operations: OperationsSettings;
   branding: BrandingSettings;
+  platform: PlatformSettings;
 }
 export type SettingKey = keyof SettingsMap;
 
@@ -56,7 +75,9 @@ type FieldSpec =
   | { type: 'string'; max: number; pattern?: RegExp; format?: 'email' | 'url' | 'mobile' | 'phone' }
   | { type: 'boolean' }
   | { type: 'int'; min: number; max: number }
-  | { type: 'enum'; values: readonly string[] };
+  | { type: 'enum'; values: readonly string[] }
+  /** JSON array; `item` returns an error message for an invalid element (null = valid). */
+  | { type: 'list'; max: number; item: (value: unknown) => string | null };
 
 interface SettingDefinition<T> {
   description: string;
@@ -133,7 +154,28 @@ export const SETTINGS: { [K in SettingKey]: SettingDefinition<SettingsMap[K]> } 
     defaults: { primaryColor: '#1E8E5A' },
     fields: { primaryColor: { type: 'string', max: 7, pattern: /^#[0-9A-Fa-f]{6}$/ } },
   },
+  platform: {
+    description: 'Demand forecast & staffing, partner carriers and route optimisation',
+    defaults: { ordersPerHeroPerShift: 25, forecastEvents: [], partnerFeeCents: 4000, routingProvider: 'haversine' },
+    fields: {
+      ordersPerHeroPerShift: { type: 'int', min: 1, max: 500 },
+      forecastEvents: { type: 'list', max: 50, item: checkForecastEvent },
+      partnerFeeCents: { type: 'int', min: 0, max: 1_000_000 },
+      routingProvider: { type: 'enum', values: ['haversine', 'osrm', 'google'] },
+    },
+  },
 };
+
+function checkForecastEvent(v: unknown): string | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return 'Each event must be an object';
+  const e = v as Record<string, unknown>;
+  const day = /^\d{4}-\d{2}-\d{2}$/;
+  if (typeof e.name !== 'string' || !e.name.trim() || e.name.length > 80) return 'Event name is required (max 80 characters)';
+  if (typeof e.from !== 'string' || !day.test(e.from) || typeof e.to !== 'string' || !day.test(e.to)) return 'Event dates must be YYYY-MM-DD';
+  if (e.to < e.from) return 'Event end date is before its start';
+  if (typeof e.multiplier !== 'number' || !Number.isFinite(e.multiplier) || e.multiplier < 0 || e.multiplier > 10) return 'Multiplier must be between 0 and 10';
+  return Object.keys(e).some((k) => !['name', 'from', 'to', 'multiplier'].includes(k)) ? 'Unknown event field' : null;
+}
 
 export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
 
@@ -194,6 +236,15 @@ function checkField(spec: FieldSpec, value: unknown): string | null {
       return value < spec.min || value > spec.max ? `Must be between ${spec.min} and ${spec.max}` : null;
     case 'enum':
       return typeof value === 'string' && spec.values.includes(value) ? null : `Must be one of ${spec.values.join(', ')}`;
+    case 'list': {
+      if (!Array.isArray(value)) return 'Must be a list';
+      if (value.length > spec.max) return `At most ${spec.max} entries`;
+      for (const [i, item] of value.entries()) {
+        const problem = spec.item(item);
+        if (problem) return `Entry ${i + 1}: ${problem}`;
+      }
+      return null;
+    }
     case 'string': {
       if (typeof value !== 'string') return 'Must be a string';
       const v = value.trim();
@@ -210,6 +261,7 @@ function checkField(spec: FieldSpec, value: unknown): string | null {
 }
 
 function normalizeField(spec: FieldSpec, value: unknown): unknown {
+  if (spec.type === 'list') return (value as unknown[]).map((v) => (v && typeof v === 'object' && 'name' in v ? { ...(v as object), name: String((v as { name: unknown }).name).trim() } : v));
   if (spec.type !== 'string') return value;
   const v = String(value).trim();
   if (spec.format === 'mobile' && v) return normalizeEgyptPhone(v);

@@ -1,11 +1,13 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { Access, CurrentPrincipal, Public, RequestMeta, type RequestMetaInfo } from '../../common/decorators';
 import type { Principal } from '../../common/principal';
 import { assertPermission, requireBrandOwner } from '../users/access';
+import { DomainError } from '../../common/errors';
 import { IntegrationsService } from './integrations.service';
+import { slugToMarketplace } from './marketplaces';
 import { CreateIntegrationDto, IntegrationsQueryDto, UpdateIntegrationDto } from './integrations.dto';
 
 type RawRequest = Request & { rawBody?: Buffer };
@@ -42,6 +44,17 @@ export class IntegrationsInboundController {
   woocommerce(@Param('connectionId') connectionId: string, @Req() req: RawRequest) {
     return this.integrations.inboundWoo(connectionId, req.headers, req.rawBody, req.body);
   }
+
+  @Public()
+  @Throttle(INBOUND_LIMIT)
+  @Post(':provider/:connectionId/orders')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'EasyOrders / Zid / Salla / YouCan order webhooks (provider = easyorders | zid | salla | youcan) — signature or shared secret verified' })
+  marketplace(@Param('provider') slug: string, @Param('connectionId') connectionId: string, @Req() req: RawRequest, @Query('token') token?: string) {
+    const provider = slugToMarketplace(slug);
+    if (!provider) throw new DomainError('NOT_FOUND', `Unknown store platform ${slug}`, HttpStatus.NOT_FOUND);
+    return this.integrations.inboundMarketplace(provider, connectionId, { headers: req.headers, rawBody: req.rawBody, body: req.body, token: token ?? null });
+  }
 }
 
 @ApiTags('Integrations')
@@ -60,7 +73,7 @@ export class IntegrationsController {
 
   @Access({ actors: ['brand'], permissions: ['integrations.manage'] })
   @Post()
-  @ApiOperation({ summary: 'Brand owner: connect a Shopify / WooCommerce store (returns webhookUrl + inboundSecret)' })
+  @ApiOperation({ summary: 'Brand owner: connect a Shopify / WooCommerce / EasyOrders / Zid / Salla / YouCan store (returns webhookUrl + inboundSecret)' })
   create(@CurrentPrincipal() p: Principal, @Body() dto: CreateIntegrationDto, @RequestMeta() meta: RequestMetaInfo) {
     return this.integrations.create(requireBrandOwner(p).brandId, dto, p, meta);
   }

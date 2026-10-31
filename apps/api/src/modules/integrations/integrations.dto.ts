@@ -4,12 +4,12 @@ import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Ma
 import { ServiceLevel } from '@goturtle/shared';
 import { PageQuery } from '../../common/pagination';
 
-export const CONNECTOR_PROVIDERS = ['SHOPIFY', 'WOOCOMMERCE'] as const;
+export const CONNECTOR_PROVIDERS = ['SHOPIFY', 'WOOCOMMERCE', 'EASYORDERS', 'ZID', 'SALLA', 'YOUCAN'] as const;
 export type ConnectorProvider = (typeof CONNECTOR_PROVIDERS)[number];
 
 export class IntegrationCredentialsDto {
-  @ApiPropertyOptional({ description: 'Shopify Admin API access token (shpat_…) — needed for fulfillment sync and the credentials test' })
-  @IsOptional() @IsString() @MaxLength(300) accessToken?: string;
+  @ApiPropertyOptional({ description: 'Shopify Admin API token (shpat_…), Salla / YouCan OAuth access token, Zid X-Manager-Token or EasyOrders API key — used by the credentials test' })
+  @IsOptional() @IsString() @MaxLength(1000) accessToken?: string;
 
   @ApiPropertyOptional({ description: 'Shopify: webhook signing secret / app client secret. WooCommerce: the secret typed in the webhook settings (otherwise use the connection inboundSecret)' })
   @IsOptional() @IsString() @MaxLength(300) webhookSecret?: string;
@@ -19,6 +19,9 @@ export class IntegrationCredentialsDto {
 
   @ApiPropertyOptional({ description: 'WooCommerce REST consumer secret (cs_…)' })
   @IsOptional() @IsString() @MaxLength(300) consumerSecret?: string;
+
+  @ApiPropertyOptional({ description: 'Zid: Authorization bearer token (the X-Manager-Token goes in accessToken)' })
+  @IsOptional() @IsString() @MaxLength(1000) authorizationToken?: string;
 }
 
 export class IntegrationSettingsDto {
@@ -43,7 +46,7 @@ export class CreateIntegrationDto {
   @IsIn(CONNECTOR_PROVIDERS as unknown as string[])
   provider!: ConnectorProvider;
 
-  @ApiProperty({ example: 'nile-threads.myshopify.com', description: 'Shopify: *.myshopify.com. WooCommerce: the store host (and path), e.g. shop.example.com' })
+  @ApiProperty({ example: 'nile-threads.myshopify.com', description: 'Shopify: *.myshopify.com. WooCommerce: the store host (and path), e.g. shop.example.com. EasyOrders / Zid / Salla / YouCan: store domain, handle or merchant id' })
   @IsString() @MinLength(3) @MaxLength(191) shopDomain!: string;
 
   @ApiPropertyOptional({ type: IntegrationCredentialsDto })

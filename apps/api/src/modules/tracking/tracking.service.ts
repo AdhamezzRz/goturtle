@@ -16,6 +16,7 @@ import { OrdersService } from '../orders/orders.service';
 import type { OrderRow } from '../orders/order-factory.service';
 import { affected, assertDayInRange, auditPrincipal, endOfCairoDay, firstName, round2 } from '../orders/ops-kit';
 import type { RateDto, RescheduleDto, UpdateAddressDto } from './tracking.dto';
+import { partnerTrackingInfo } from '../partners/partner-tracking';
 
 /** Before the parcel leaves with a hero for delivery. */
 const BEFORE_OUT: OrderStatus[] = ['CREATED', 'PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_HUB', 'ASSIGNED', 'ON_HOLD'];
@@ -77,7 +78,8 @@ export class TrackingService {
 
     let hero: { firstName: string; vehicleType: string; rating: number } | null = null;
     let live: { lat: number; lng: number; lastSeenAt: Date | null } | null = null;
-    if (o.courierId && HERO_VISIBLE.includes(o.status)) {
+    const partner = await partnerTrackingInfo(this.db, o);
+    if (o.courierId && HERO_VISIBLE.includes(o.status) && !partner) {
       const [c] = await this.db
         .select({ name: users.name, vehicleType: couriers.vehicleType, rating: couriers.rating, lat: couriers.lastLat, lng: couriers.lastLng, lastSeenAt: couriers.lastSeenAt })
         .from(couriers)
@@ -117,6 +119,7 @@ export class TrackingService {
       recipient: { firstName: firstName(o.recipientName), phone: maskPhone(o.recipientPhone) },
       hero,
       heroLocation: live,
+      partner,
       timeline: events.map((e) => ({
         status: e.status,
         label: ORDER_STATUS_LABELS[e.status],

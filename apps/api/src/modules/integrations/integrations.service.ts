@@ -21,6 +21,10 @@ import {
   MappingError, mapShopifyOrder, mapWooOrder, normalizeShopifyDomain, normalizeWooDomain, verifyBase64Hmac, withDefaultSettings,
   type ConnectorCredentials, type ConnectorSettings, type ShopifyOrder, type WooOrder,
 } from './connectors';
+import {
+  MARKETPLACE_META, classifyMarketplace, isMarketplace, mapMarketplaceOrder, marketplaceExternalId, normalizeStoreRef, probeRequest, probeStoreName, verifyMarketplace,
+  type MarketplaceProvider,
+} from './marketplaces';
 import type { ConnectorProvider, CreateIntegrationDto, IntegrationSettingsDto, IntegrationsQueryDto, UpdateIntegrationDto } from './integrations.dto';
 
 type ConnectionRow = typeof integrationConnections.$inferSelect;
@@ -148,7 +152,7 @@ export class IntegrationsService {
     const creds = this.credentials(c);
     let result: { ok: boolean; message: string; details?: Record<string, unknown> };
     try {
-      result = c.provider === 'SHOPIFY' ? await this.testShopify(c, creds) : await this.testWoo(c, creds);
+      result = isMarketplace(c.provider) ? await this.testMarketplace(c.provider, creds) : c.provider === 'SHOPIFY' ? await this.testShopify(c, creds) : await this.testWoo(c, creds);
     } catch (err) {
       result = { ok: false, message: err instanceof Error ? err.message : String(err) };
     }
@@ -180,7 +184,41 @@ export class IntegrationsService {
     return { ok: true, message: `Connected to ${c.shopDomain}.${warning}`, details: { currency: code } };
   }
 
+  private async testMarketplace(provider: MarketplaceProvider, creds: ConnectorCredentials) {
+    const probe = probeRequest(provider, creds);
+    if (probe.missing) return { ok: false, message: probe.missing };
+    const label = MARKETPLACE_META[provider].label;
+    const res = await fetchWithTimeout(probe.url, { headers: probe.headers });
+    if (!res.ok) return { ok: false, message: `${label} answered ${res.status}: ${snippet(res.text, 200)}` };
+    const name = probeStoreName(provider, res.json);
+    return { ok: true, message: `Connected to ${label}${name ? ` (${name})` : ''}.`, details: name ? { name } : undefined };
+  }
+
   // ------------------------------------------------------------- inbound
+
+  /**
+   * EasyOrders / Zid / Salla / YouCan order webhooks. Same contract as the
+   * Shopify receiver: 401 bad signature, 404 unknown connection, 200 otherwise.
+   */
+  async inboundMarketplace(
+    provider: MarketplaceProvider,
+    connectionId: string,
+    req: { headers: Record<string, string | string[] | undefined>; rawBody: Buffer | undefined; body: unknown; token?: string | null },
+  ): Promise<InboundResult> {
+    const c = await this.inboundConnection(connectionId, provider);
+    if (!verifyMarketplace(provider, req, this.credentials(c), c.inboundSecret)) {
+      throw new DomainError('INVALID_SIGNATURE', 'Webhook signature is invalid', HttpStatus.UNAUTHORIZED);
+    }
+    if (c.status === 'PAUSED') return { ok: true, action: 'ignored', reason: 'Connection is paused' };
+    const event = classifyMarketplace(provider, req.body, req.headers);
+    const reference = event.reference ? `${MARKETPLACE_META[provider].refPrefix}-${event.reference}` : null;
+    if (event.kind === 'ignore') return { ok: true, action: 'ignored', reason: event.reason };
+    const externalId = marketplaceExternalId(provider, event.externalId);
+    if (event.kind === 'cancel') return this.cancelOrder(c, externalId, reference);
+    const settings = withDefaultSettings(c.settings);
+    if (!settings.autoCreate) return { ok: true, action: 'ignored', reason: 'Automatic order creation is off' };
+    return this.importOrder(c, externalId, () => mapMarketplaceOrder(provider, event.order, { brandId: c.brandId, connectionId: c.id, shopDomain: c.shopDomain, settings }), reference);
+  }
 
   async inboundShopify(connectionId: string, headers: Record<string, string | string[] | undefined>, rawBody: Buffer | undefined, body: unknown): Promise<InboundResult> {
     const c = await this.inboundConnection(connectionId, 'SHOPIFY');
@@ -256,7 +294,7 @@ export class IntegrationsService {
   private async cancelOrder(c: ConnectionRow, externalId: string, reference: string | null): Promise<InboundResult> {
     if (!externalId) return { ok: true, action: 'ignored', reason: 'Order id is missing' };
     try {
-      const cancelled = await this.intake().cancelByExternalId(c.brandId, externalId, integrationActor(c.brandId, c.provider), `Cancelled in ${c.provider === 'SHOPIFY' ? 'Shopify' : 'WooCommerce'}`);
+      const cancelled = await this.intake().cancelByExternalId(c.brandId, externalId, integrationActor(c.brandId, c.provider), `Cancelled in ${providerLabel(c.provider)}`);
       await this.db.update(integrationConnections).set({ lastSyncAt: new Date() }).where(eq(integrationConnections.id, c.id));
       return { ok: true, action: cancelled ? 'cancelled' : 'not_cancelled' };
     } catch (err) {
@@ -270,7 +308,7 @@ export class IntegrationsService {
     this.log.warn(`${c.provider} ${c.shopDomain} order ${reference}: ${message}`);
     await this.db.update(integrationConnections).set({ status: 'ERROR', lastError: `${reference}: ${message}`.slice(0, 1000) }).where(eq(integrationConnections.id, c.id));
     await this.notifications
-      .notifyBrandOwners(c.brandId, 'integration_error', { provider: c.provider === 'SHOPIFY' ? 'Shopify' : 'WooCommerce', reference, shop: c.shopDomain, error: message.slice(0, 200) }, { data: { connectionId: c.id, link: '/brand/integrations' } })
+      .notifyBrandOwners(c.brandId, 'integration_error', { provider: providerLabel(c.provider), reference, shop: c.shopDomain, error: message.slice(0, 200) }, { data: { connectionId: c.id, link: '/brand/integrations' } })
       .catch(() => undefined);
     return { ok: false, action, reason: message };
   }
@@ -373,6 +411,11 @@ export class IntegrationsService {
   }
 
   private async domain(provider: ConnectorProvider, input: string) {
+    if (isMarketplace(provider)) {
+      const d = normalizeStoreRef(input);
+      if (!d) throw new DomainError('INVALID_SHOP_DOMAIN', 'Enter the store domain, handle or merchant id, e.g. mystore.easy-orders.net', HttpStatus.BAD_REQUEST);
+      return d;
+    }
     if (provider === 'SHOPIFY') {
       const d = normalizeShopifyDomain(input);
       if (!d) throw new DomainError('INVALID_SHOP_DOMAIN', 'Use your store’s myshopify.com domain, e.g. my-store.myshopify.com', HttpStatus.BAD_REQUEST);
@@ -412,7 +455,7 @@ export class IntegrationsService {
   /** Connection for the API: no credentials; inbound secret only for the brand owner. */
   private present(c: ConnectionRow, withSecret: boolean) {
     const creds = this.credentials(c);
-    const slug = c.provider === 'SHOPIFY' ? 'shopify' : 'woocommerce';
+    const slug = isMarketplace(c.provider) ? MARKETPLACE_META[c.provider].slug : c.provider === 'SHOPIFY' ? 'shopify' : 'woocommerce';
     return {
       id: c.id,
       brandId: c.brandId,
@@ -429,6 +472,10 @@ export class IntegrationsService {
       updatedAt: c.updatedAt,
     };
   }
+}
+
+function providerLabel(provider: string): string {
+  return isMarketplace(provider) ? MARKETPLACE_META[provider].label : provider === 'SHOPIFY' ? 'Shopify' : 'WooCommerce';
 }
 
 function header(headers: Record<string, string | string[] | undefined>, name: string): string | undefined {
