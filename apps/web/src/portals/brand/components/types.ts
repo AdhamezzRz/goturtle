@@ -87,6 +87,7 @@ export interface Attempt {
 
 export interface OrderDetail extends Omit<OrderRow, 'attempts' | 'zone' | 'courier'> {
   brandId: string;
+  statusLabel: Bilingual;
   recipientAltPhone: string | null;
   building: string | null;
   floor: string | null;
