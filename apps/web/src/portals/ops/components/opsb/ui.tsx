@@ -67,7 +67,7 @@ export function Stat({ label, value, hint, icon, tone = 'turtle', loading, onCli
 }
 
 export function StatGrid({ children, cols = 4, className }: { children: ReactNode; cols?: 2 | 3 | 4 | 5 | 6; className?: string }) {
-  const c = { 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5', 6: 'lg:grid-cols-3 xl:grid-cols-6' }[cols];
+  const c = { 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-3 2xl:grid-cols-5', 6: 'lg:grid-cols-3 xl:grid-cols-6' }[cols];
   return <div className={cn('grid grid-cols-2 gap-3 sm:gap-4', c, className)}>{children}</div>;
 }
 

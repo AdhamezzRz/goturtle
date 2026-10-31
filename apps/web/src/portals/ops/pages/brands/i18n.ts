@@ -39,6 +39,7 @@ registerDictionary({
   'ops.brands.o.done': { en: 'Brand {code} created', ar: 'تم إنشاء التاجر {code}' },
   'ops.brands.o.successTitle': { en: 'Brand created', ar: 'تم إنشاء التاجر' },
   'ops.brands.o.open': { en: 'Open brand', ar: 'فتح التاجر' },
+  'ops.brands.o.locale': { en: 'Owner language', ar: 'لغة المالك' },
   'ops.brands.o.defaultPlan': { en: 'Default plan', ar: 'الخطة الافتراضية' },
 
   'ops.brands.loc.name': { en: 'Location name', ar: 'اسم الموقع' },
