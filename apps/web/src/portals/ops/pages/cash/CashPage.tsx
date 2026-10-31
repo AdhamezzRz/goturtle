@@ -334,6 +334,12 @@ function ConfirmHandoverModal({ handover, onClose }: { handover: HandoverRow | n
   }, [handover]);
   const cents = parseEgp(amount);
   const variance = handover && cents !== null ? cents - handover.declaredCents : 0;
+  const hero = useQuery({
+    queryKey: ['heroes', 'detail', handover?.courierId],
+    queryFn: () => api<{ cash: { onHandCents: number } }>(`/couriers/${handover!.courierId}`),
+    enabled: !!handover,
+  });
+  const onHand = hero.data?.cash.onHandCents;
   const m = useMutation({
     mutationFn: () => api(`/cash/handovers/${handover!.id}/confirm`, { method: 'POST', body: { receivedCents: cents, notes: notes.trim() || undefined } }),
     onSuccess: () => { toast.success(t('ops.cash.h.confirmed')); qc.invalidateQueries({ queryKey: ['cash'] }); qc.invalidateQueries({ queryKey: ['heroes'] }); onClose(); },
@@ -348,7 +354,7 @@ function ConfirmHandoverModal({ handover, onClose }: { handover: HandoverRow | n
       footer={
         <>
           <Button variant="outline" onClick={onClose}>{t('action.cancel')}</Button>
-          <Button variant="cash" loading={m.isPending} onClick={() => { if (cents === null || cents < 0) { setErr(t('ops.opsb.invalidAmount')); return; } m.mutate(); }}>{t('ops.cash.h.confirmBtn', { amount: money(cents ?? 0) })}</Button>
+          <Button variant="cash" loading={m.isPending} onClick={() => { if (cents === null || cents < 0) { setErr(t('ops.opsb.invalidAmount')); return; } if (onHand !== undefined && cents > onHand) { setErr(t('ops.opsb.handover.exceeds', { amount: money(onHand) })); return; } m.mutate(); }}>{t('ops.cash.h.confirmBtn', { amount: money(cents ?? 0) })}</Button>
         </>
       }
     >
@@ -359,6 +365,7 @@ function ConfirmHandoverModal({ handover, onClose }: { handover: HandoverRow | n
             <InfoRow label={t('ops.opsb.method')} value={en('HandoverMethod', handover.method)} />
             {handover.reference && <InfoRow label={t('ops.opsb.reference')} value={<span className="ltr">{handover.reference}</span>} />}
             <InfoRow label={t('ops.cash.declared')} value={<Money cents={handover.declaredCents} className="font-semibold" />} />
+            <InfoRow label={t('ops.opsb.handover.onHand')} value={onHand === undefined ? '…' : <Money cents={onHand} />} />
           </div>
           <Field label={t('ops.cash.h.receivedAmount')} required error={err}>
             {(id) => <MoneyInput id={id} value={amount} onChange={(v) => { setAmount(v); setErr(undefined); }} invalid={!!err} />}
