@@ -74,7 +74,7 @@ export default function TrackingPage() {
   if (!valid || (q.error instanceof ApiError && (q.error.status === 404 || q.error.status === 400))) return <NotFound tn={raw} />;
 
   return (
-    <CustomerShell>
+    <CustomerShell wide>
       <div className="mb-3 flex items-center justify-between gap-2">
         <Link to="/track" className="inline-flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-800 dark:hover:text-ink-200">
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" />{t('customer.track.another')}
@@ -95,10 +95,11 @@ export default function TrackingPage() {
             <Button className="mt-4" variant="outline" onClick={() => q.refetch()}>{t('action.retry')}</Button>
           </Panel>
         ) : (
-          <div className="space-y-4"><Skeleton className="h-64 w-full rounded-3xl" /><Skeleton className="h-40 w-full rounded-3xl" /><Skeleton className="h-56 w-full rounded-3xl" /></div>
+          <div className="space-y-4 lg:max-w-2xl"><Skeleton className="h-64 w-full rounded-3xl" /><Skeleton className="h-40 w-full rounded-3xl" /><Skeleton className="h-56 w-full rounded-3xl" /></div>
         )
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+          <div className="space-y-4">
           <StatusHero d={d} />
 
           {d.status === 'OUT_FOR_DELIVERY' && (
@@ -147,6 +148,8 @@ export default function TrackingPage() {
 
           {d.verified && d.details && <DeliveryInfo d={d} />}
 
+          </div>
+          <div className="space-y-4 lg:sticky lg:top-4">
           {/* Actions */}
           {d.verified ? (
             <Actions d={d} onAction={setModal} onShare={share} />
@@ -165,6 +168,7 @@ export default function TrackingPage() {
           )}
 
           <TimelinePanel d={d} />
+          </div>
         </div>
       )}
 
