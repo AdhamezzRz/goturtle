@@ -14,6 +14,9 @@ import { runMigrations } from './db/migrate';
 
 const log = new Logger('GoTurtle');
 
+/** Extra map tile hosts allowed by the CSP (comma separated), when VITE_MAP_TILE_URL points elsewhere. */
+const mapTileHosts = (process.env.MAP_TILE_HOSTS ?? '').split(',').map((h) => h.trim()).filter(Boolean);
+
 /** Configures an app instance (shared by main and e2e tests). */
 export function configureApp(app: NestExpressApplication) {
   app.set('trust proxy', 1); // Hostinger / any reverse proxy
@@ -23,7 +26,7 @@ export function configureApp(app: NestExpressApplication) {
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        'img-src': ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org', 'https://*.basemaps.cartocdn.com'],
+        'img-src': ["'self'", 'data:', 'blob:', 'https://server.arcgisonline.com', 'https://*.arcgisonline.com', ...mapTileHosts],
         'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
         'connect-src': ["'self'"],

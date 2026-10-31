@@ -6,6 +6,17 @@ import { cn } from '@/lib/cn';
 
 export const CAIRO_CENTER: [number, number] = [30.0444, 31.2357];
 
+/**
+ * Basemap tiles. Default: Esri World Street Map (no API key, Arabic + English
+ * labels). Override at build time with VITE_MAP_TILE_URL / VITE_MAP_TILE_ATTRIBUTION
+ * (e.g. a MapTiler / Mapbox / Stadia URL with your key) — remember to allow the
+ * host in the API's CSP (img-src) via MAP_TILE_HOSTS.
+ */
+const TILE_URL: string =
+  import.meta.env.VITE_MAP_TILE_URL || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+const TILE_ATTRIBUTION: string =
+  import.meta.env.VITE_MAP_TILE_ATTRIBUTION || 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
+
 export type MarkerKind = 'hero' | 'hero-idle' | 'hero-offline' | 'order' | 'order-urgent' | 'hub' | 'pickup' | 'home' | 'done';
 
 const COLORS: Record<MarkerKind, string> = {
@@ -66,8 +77,18 @@ function FitBounds({ points, padding = 40, once = true }: { points: Array<[numbe
   const key = once ? points.length > 0 : JSON.stringify(points);
   useEffect(() => {
     if (!points.length) return;
-    if (points.length === 1) map.setView(points[0], 14);
-    else map.fitBounds(L.latLngBounds(points), { padding: [padding, padding], maxZoom: 15 });
+    let cancelled = false;
+    // Wait until the map is laid out and never animate: an animated zoom racing an
+    // unmount/re-render is what throws Leaflet's "_leaflet_pos of undefined".
+    map.whenReady(() => {
+      if (cancelled || !map.getContainer()?.isConnected) return;
+      map.invalidateSize({ animate: false });
+      if (points.length === 1) map.setView(points[0], 14, { animate: false });
+      else map.fitBounds(L.latLngBounds(points), { padding: [padding, padding], maxZoom: 15, animate: false });
+    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return null;
@@ -80,12 +101,9 @@ export function LiveMap({
 }) {
   const bounds = useMemo(() => [...points.map((p) => [p.lat, p.lng] as [number, number]), ...(route ?? [])], [points, route]);
   return (
-    <div className={cn('overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800', className)} style={{ height }}>
+    <div className={cn('relative isolate z-0 overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800', className)} style={{ height }}>
       <MapContainer center={center as LatLngExpression} zoom={zoom} scrollWheelZoom className="h-full w-full" attributionControl>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
         {route && route.length > 1 && <Polyline positions={route} pathOptions={{ color: '#0e9158', weight: 4, opacity: 0.75, dashArray: '8 8' }} />}
         {points.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]} icon={pinIcon(p.kind, p.label)} eventHandlers={p.onClick ? { click: p.onClick } : undefined}>
