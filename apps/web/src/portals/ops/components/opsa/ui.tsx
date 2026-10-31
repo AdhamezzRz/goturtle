@@ -170,32 +170,41 @@ export function SearchInput({ value, onChange, placeholder, className, autoFocus
 }
 
 /**
- * Filters that sit inline on tablets/desktop and collapse into a Drawer on phones.
- * Children are rendered once (no duplicate ids).
+ * Filter panel: a toggle button that expands an inline grid on tablets/desktop
+ * and opens a Drawer on phones. Render it inside a `flex flex-wrap` row — the
+ * desktop panel takes a full row (basis-full). Children are rendered once.
  */
-export function ResponsiveFilters({ children, active, onClear, className, cols = 4 }: { children: ReactNode; active: number; onClear: () => void; className?: string; cols?: 2 | 3 | 4 | 5 | 6 }) {
+export function ResponsiveFilters({ children, active, onClear, className, cols = 4, defaultOpen }: { children: ReactNode; active: number; onClear: () => void; className?: string; cols?: 2 | 3 | 4 | 5 | 6; defaultOpen?: boolean }) {
   const { t } = useI18n();
   const desktop = useMediaQuery('(min-width: 768px)');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches && (defaultOpen ?? active > 0));
   const grid = { 2: 'md:grid-cols-2', 3: 'md:grid-cols-3', 4: 'md:grid-cols-2 lg:grid-cols-4', 5: 'md:grid-cols-3 lg:grid-cols-5', 6: 'md:grid-cols-3 xl:grid-cols-6' }[cols];
+  const button = (
+    <Button variant={open && desktop ? 'secondary' : 'outline'} onClick={() => setOpen((o) => !o)} icon={<Filter className="h-4 w-4" />} className={className} aria-expanded={open}>
+      {t('ops.opsa.filters')}
+      {active > 0 && <span className="ltr rounded-full bg-turtle-600 px-1.5 text-[11px] text-white">{num(active)}</span>}
+    </Button>
+  );
   if (desktop) {
     return (
-      <div className={cn('grid grid-cols-1 items-end gap-3', grid, className)}>
-        {children}
-        {active > 0 && (
-          <div className="flex items-end">
-            <Button variant="ghost" size="sm" onClick={onClear} icon={<X className="h-4 w-4" />}>{t('ops.opsa.clearFilters')}</Button>
+      <>
+        {button}
+        {open && (
+          <div className="basis-full rounded-2xl border border-ink-100 bg-white p-4 shadow-card dark:border-ink-800 dark:bg-ink-900">
+            <div className={cn('grid grid-cols-1 items-end gap-3', grid)}>{children}</div>
+            {active > 0 && (
+              <div className="mt-3 flex justify-end border-t border-ink-100 pt-3 dark:border-ink-800">
+                <Button variant="ghost" size="sm" onClick={onClear} icon={<X className="h-4 w-4" />}>{t('ops.opsa.clearFilters')}</Button>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </>
     );
   }
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)} icon={<Filter className="h-4 w-4" />} className={className}>
-        {t('ops.opsa.filters')}
-        {active > 0 && <span className="rounded-full bg-turtle-600 px-1.5 text-[11px] text-white">{num(active)}</span>}
-      </Button>
+      {button}
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
