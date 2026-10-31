@@ -253,7 +253,7 @@ function Webhooks() {
                 <p className="ltr text-xs">HTTP {ping.statusCode ?? '—'} · {num(ping.durationMs)} ms</p>
               </div>
             </div>
-            {ping.error && <p className="text-sm text-red-600">{ping.error}</p>}
+            {ping.error && ping.error !== `HTTP ${ping.statusCode}` && <p className="text-sm text-red-600">{ping.error}</p>}
             {ping.responseBody && <CodeBlock code={ping.responseBody} lang="response" />}
           </div>
         )}

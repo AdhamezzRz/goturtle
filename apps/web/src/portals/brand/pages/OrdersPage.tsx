@@ -159,9 +159,9 @@ export default function OrdersPage() {
 
       <Tabs value={f.status ? ('' as Tab) : tab} onChange={(v) => setF({ tab: v, status: '' })} tabs={tabs} className="mb-4 scrollbar-none" />
 
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
         <Input
-          className="lg:max-w-sm lg:flex-1"
+          className="lg:w-80 lg:shrink-0"
           leading={<Search className="h-4 w-4" />}
           trailing={search ? <button type="button" onClick={() => setSearch('')} aria-label={t('action.clear')}><X className="h-4 w-4" /></button> : undefined}
           placeholder={t('brand.orders.searchPh')}
@@ -170,7 +170,7 @@ export default function OrdersPage() {
           aria-label={t('action.search')}
           type="search"
         />
-        <div className="hidden flex-wrap items-center gap-2 lg:flex">
+        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-2 lg:flex">
           <FilterControls f={f} setF={setF} zones={zones.data} inline />
         </div>
         <Button variant="outline" className="lg:hidden" icon={<Filter className="h-4 w-4" />} onClick={() => setFiltersOpen(true)}>
