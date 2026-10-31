@@ -30,12 +30,12 @@ export function NotificationBell({ to }: { to: string }) {
   const interval = usePollInterval(45_000);
   const q = useQuery({
     queryKey: ['notifications', 'unread'],
-    queryFn: () => api<{ count: number }>('/notifications/unread-count'),
+    queryFn: () => api<{ unread?: number; count?: number }>('/notifications/unread-count'),
     refetchInterval: interval,
     retry: false,
   });
   if (q.isError) return null;
-  const count = q.data?.count ?? 0;
+  const count = q.data?.unread ?? q.data?.count ?? 0;
   return (
     <button onClick={() => navigate(to)} className="relative grid h-8 w-8 place-items-center rounded-lg text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800" aria-label="notifications">
       <Bell className="h-4 w-4" />

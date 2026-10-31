@@ -125,7 +125,14 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, onRetry, o
                   <tr
                     key={id}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
-                    className={cn('transition-colors', onRowClick && 'cursor-pointer hover:bg-turtle-50/40 dark:hover:bg-ink-800/60', selected?.has(id) && 'bg-turtle-50/60 dark:bg-turtle-950/30')}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={onRowClick ? (e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+                        e.preventDefault();
+                        onRowClick(row);
+                      }
+                    } : undefined}
+                    className={cn('transition-colors', onRowClick && 'cursor-pointer outline-none hover:bg-turtle-50/40 focus-visible:bg-turtle-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-turtle-500 dark:hover:bg-ink-800/60', selected?.has(id) && 'bg-turtle-50/60 dark:bg-turtle-950/30')}
                   >
                     {selectable && (
                       <td className={pad} onClick={(e) => e.stopPropagation()}>

@@ -41,7 +41,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turtle-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-colors [&>svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turtle-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         variants[variant],
         sizes[size],
         block && 'w-full',
@@ -57,5 +57,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 });
 
 export function IconButton({ label, className, ...rest }: ButtonProps & { label: string }) {
-  return <Button aria-label={label} title={label} variant="ghost" size="sm" className={cn('w-8 px-0', className)} {...rest} />;
+  // `!px-0` beats the size's horizontal padding so the icon keeps its full size.
+  return <Button aria-label={label} title={label} variant="ghost" size="sm" className={cn('w-8 !px-0', className)} {...rest} />;
 }
