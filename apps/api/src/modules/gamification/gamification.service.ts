@@ -5,7 +5,7 @@ import type { Db, DbOrTx } from '../../db/client';
 import { cashHandovers, couriers, deliveryAttempts, orders, pickups, sequences, shifts, users } from '../../db/schema';
 import { InjectDb } from '../../core/database.module';
 import { JobsService } from '../../core/jobs.service';
-import { cairoToday } from '../../db/helpers';
+import { cairoToday, withDeadlockRetry } from '../../db/helpers';
 import { addDays, cairoDayRange, cairoDayStart, monthStartOf, percent, toNumber, weekStartOf } from '../couriers/workforce.util';
 
 /**
@@ -58,7 +58,7 @@ export class GamificationService implements OnModuleInit {
       if (amount > 0) await t.update(couriers).set({ xp: sql`${couriers.xp} + ${amount}` }).where(eq(couriers.id, courierId));
       return true;
     };
-    return tx ? run(tx) : this.db.transaction(run);
+    return tx ? run(tx) : withDeadlockRetry(() => this.db.transaction(run));
   }
 
   /** Delivered order → delivery XP (+ on-time bonus when delivered before promisedBy). Verified against the order row. */

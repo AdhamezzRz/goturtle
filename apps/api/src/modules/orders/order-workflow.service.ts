@@ -1,3 +1,4 @@
+import { withDeadlockRetry } from '../../db/helpers';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, count, eq, inArray, sql } from 'drizzle-orm';
@@ -82,10 +83,13 @@ export class OrderWorkflowService {
 
   /** Runs `fn` in a transaction and emits the collected events after commit. */
   async run<T>(fn: (tx: Tx, fx: PostCommit) => Promise<T>): Promise<T> {
-    const fx = new PostCommit();
-    const result = await this.db.transaction((tx) => fn(tx, fx));
-    fx.flush(this.events, this.log);
-    return result;
+    // A deadlock victim is rolled back entirely, so the work (and its pending events) is simply redone.
+    return withDeadlockRetry(async () => {
+      const fx = new PostCommit();
+      const result = await this.db.transaction((tx) => fn(tx, fx));
+      fx.flush(this.events, this.log);
+      return result;
+    });
   }
 
   /** One transition in its own transaction. Returns the updated order. */

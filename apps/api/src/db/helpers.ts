@@ -86,3 +86,31 @@ export function cairoOffsetMinutes(at: Date): number {
   const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
   return Math.round((asUtc - at.getTime()) / 60_000);
 }
+
+const RETRYABLE = new Set(['ER_LOCK_DEADLOCK', 'ER_LOCK_WAIT_TIMEOUT']);
+
+/** True when a (possibly wrapped) MySQL error is a deadlock / lock-wait timeout. */
+export function isRetryableLockError(err: unknown): boolean {
+  let cur = err as { code?: string; cause?: unknown } | undefined;
+  for (let i = 0; i < 4 && cur; i++) {
+    if (cur.code && RETRYABLE.has(cur.code)) return true;
+    cur = cur.cause as typeof cur;
+  }
+  return false;
+}
+
+/**
+ * Runs `fn` and retries it when InnoDB picked it as a deadlock victim. The whole
+ * transaction was rolled back, so `fn` must start its own transaction and be
+ * safe to re-run (re-read rows, idempotent postings).
+ */
+export async function withDeadlockRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= attempts || !isRetryableLockError(err)) throw err;
+      await new Promise((r) => setTimeout(r, 15 * attempt + Math.floor(Math.random() * 25)));
+    }
+  }
+}

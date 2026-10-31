@@ -19,12 +19,24 @@ import { assertValidConfig, config } from '../config';
  */
 export const DEMO_PASSWORD = 'Turtle@2026';
 
+/** Base seed = Greater Cairo network + demo accounts. */
 export async function seedBase(db: Db) {
-  const [{ n }] = await db.select({ n: count() }).from(s.zones);
-  if (Number(n) > 0) {
+  const created = await seedNetwork(db);
+  if (!created) {
     console.log('• network already seeded — skipping base seed');
     return false;
   }
+  await seedDemoAccounts(db);
+  return true;
+}
+
+/**
+ * Production-safe: governorates, cities, hubs, the 25 Greater Cairo zones and the
+ * default rate cards. Idempotent (does nothing when zones exist). Returns true when created.
+ */
+export async function seedNetwork(db: Db): Promise<boolean> {
+  const [{ n }] = await db.select({ n: count() }).from(s.zones);
+  if (Number(n) > 0) return false;
 
   // Geography
   const govIds = new Map<string, string>();
@@ -71,6 +83,19 @@ export async function seedBase(db: Db) {
     }
   }
   console.log('✔ pricing plans: Standard, Growth');
+  return true;
+}
+
+/**
+ * Demo staff, brands (with owners & pickup locations) and heroes, all with
+ * DEMO_PASSWORD. Requires the network. Skips accounts whose phone already exists.
+ */
+export async function seedDemoAccounts(db: Db): Promise<void> {
+  const zoneIds = new Map((await db.select({ id: s.zones.id, code: s.zones.code }).from(s.zones)).map((z) => [z.code, z.id]));
+  const hubIds = new Map((await db.select({ id: s.hubs.id, code: s.hubs.code }).from(s.hubs)).map((h) => [h.code, h.id]));
+  const plans = await db.select().from(s.pricingPlans);
+  const standard = plans.find((p) => p.isDefault) ?? plans[0];
+  const growth = plans.find((p) => !p.isDefault) ?? standard;
 
   // Staff
   const pw = await hashPassword(DEMO_PASSWORD);
@@ -103,6 +128,8 @@ export async function seedBase(db: Db) {
     { code: 'BLOOM', name: 'Bloom Beauty', industry: 'Cosmetics', phone: '+201110000003', email: 'care@bloombeauty.eg', plan: standard.id, owner: { name: 'Laila Mostafa', phone: '+201110000013' }, location: { name: 'Maadi store', address: 'Road 9, Maadi', zone: 'CAI-MAADI', lat: 29.9602, lng: 31.2569 }, cycle: 'BIWEEKLY' as const, allowOpen: true },
   ];
   for (const b of brands) {
+    const [exists] = await db.select({ id: s.brands.id }).from(s.brands).where(eq(s.brands.code, b.code)).limit(1);
+    if (exists) continue;
     const [brand] = await db
       .insert(s.brands)
       .values({
@@ -137,6 +164,8 @@ export async function seedBase(db: Db) {
   for (const h of heroes) {
     i++;
     const phone = `+2012000000${String(i).padStart(2, '0')}`;
+    const [taken] = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.phone, phone)).limit(1);
+    if (taken) continue;
     const [user] = await db.insert(s.users).values({ name: h.name, phone, role: 'COURIER', passwordHash: pw, locale: 'ar' }).$returningId();
     const hub = HUBS.find((x) => x.code === h.hub)!;
     const isShift = h.type === 'SHIFT';
@@ -161,7 +190,6 @@ export async function seedBase(db: Db) {
     }
   }
   console.log(`✔ ${heroes.length} delivery heroes (freelance, shift and full-time)`);
-  return true;
 }
 
 async function main() {

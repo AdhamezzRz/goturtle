@@ -1,8 +1,10 @@
-import { Controller, Get, HttpCode, Post, Query, UnauthorizedException } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, HttpCode, Post, Query, UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { sql } from 'drizzle-orm';
-import { Access, Public } from '../common/decorators';
+import { Access, CurrentPrincipal, Public } from '../common/decorators';
+import type { Principal } from '../common/principal';
+import { SetupService } from './setup.service';
 import { safeEqual } from '../common/crypto';
 import { config } from '../config';
 import type { Db } from '../db/client';
@@ -17,7 +19,37 @@ export class SystemController {
   constructor(
     @InjectDb() private readonly db: Db,
     private readonly jobs: JobsService,
+    private readonly setup: SetupService,
   ) {}
+
+  private superAdmin(p: Principal) {
+    if (p.kind !== 'user' || p.role !== 'SUPER_ADMIN') throw new ForbiddenException('Super admin only');
+  }
+
+  @Access({ actors: ['staff'], permissions: ['settings.manage'] })
+  @Get('setup')
+  @ApiOperation({ summary: 'First-run setup status (network, counts, demo generation state)' })
+  setupStatus() {
+    return this.setup.status();
+  }
+
+  @Access({ actors: ['staff'], permissions: ['settings.manage'] })
+  @Post('setup/network')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Load the Greater Cairo network (zones, hubs, rate cards) — idempotent, production-safe' })
+  loadNetwork(@CurrentPrincipal() p: Principal) {
+    this.superAdmin(p);
+    return this.setup.loadNetwork();
+  }
+
+  @Access({ actors: ['staff'], permissions: ['settings.manage'] })
+  @Post('setup/demo')
+  @HttpCode(202)
+  @ApiOperation({ summary: 'Generate demo accounts + 3 weeks of activity in the background (empty systems only)' })
+  loadDemo(@CurrentPrincipal() p: Principal) {
+    this.superAdmin(p);
+    return this.setup.startDemo();
+  }
 
   @Public()
   @SkipThrottle()
