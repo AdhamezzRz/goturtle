@@ -12,7 +12,7 @@ import './i18n';
 
 /** Money in piasters, always LTR-isolated so it reads correctly inside Arabic text. */
 export function Money({ cents, className, sign, compact, tone }: { cents: number | null | undefined; className?: string; sign?: boolean; compact?: boolean; tone?: 'auto' | 'none' }) {
-  const v = cents ?? 0;
+  const v = (cents ?? 0) || 0;
   return (
     <span className={cn('ltr tabular whitespace-nowrap', tone === 'auto' && (v < 0 ? 'text-red-600 dark:text-red-400' : v > 0 ? 'text-turtle-700 dark:text-turtle-400' : ''), className)}>
       {money(v, { sign, compact })}
