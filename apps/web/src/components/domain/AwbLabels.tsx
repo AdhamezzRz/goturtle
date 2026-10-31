@@ -55,7 +55,7 @@ export function AwbLabelCard({ l }: { l: AwbLabel }) {
   const { t } = useI18n();
   const trackUrl = `${window.location.origin}/t/${l.trackingNumber}`;
   return (
-    <div className="label-sheet mx-auto flex w-[4in] flex-col overflow-hidden rounded-lg border-2 border-ink-900 bg-white text-ink-950 print:rounded-none" style={{ height: '6in' }} dir="ltr">
+    <div className="label-sheet mx-auto flex aspect-[2/3] w-full max-w-[4in] flex-col overflow-hidden rounded-lg border-2 border-ink-900 bg-white text-ink-950 print:h-[6in] print:w-[4in] print:max-w-none print:rounded-none" dir="ltr">
       <div className="flex items-center justify-between border-b-2 border-ink-900 px-3 py-2">
         <div className="flex items-center gap-2">
           <img src="/turtle.svg" alt="" className="h-7 w-7" />

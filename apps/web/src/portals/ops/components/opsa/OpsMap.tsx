@@ -1,5 +1,6 @@
 import { useEffect, useMemo, type ReactNode } from 'react';
 import { Circle, MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from 'react-leaflet';
+import { TILE_ATTRIBUTION, TILE_URL } from '@/components/ui/Map';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/cn';
@@ -131,10 +132,7 @@ export function OpsMap({
   return (
     <div className={cn('relative isolate overflow-hidden border border-ink-100 dark:border-ink-800', rounded && 'rounded-2xl', className)} style={{ height }}>
       <MapContainer center={CAIRO} zoom={11} scrollWheelZoom className="h-full w-full" attributionControl>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
         {circles.map((c) => (
           <Circle
             key={c.id}

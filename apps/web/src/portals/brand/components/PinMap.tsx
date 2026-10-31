@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { TILE_ATTRIBUTION, TILE_URL } from '@/components/ui/Map';
 import type { LeafletEvent, Marker as LMarker } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CAIRO_CENTER, pinIcon } from '@/components/ui/Map';
@@ -40,10 +41,7 @@ export default function PinMap({
   return (
     <div className={cn('relative z-0 overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800', className)} style={{ height }}>
       <MapContainer center={c} zoom={z} scrollWheelZoom={false} className="h-full w-full" attributionControl>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
         <Recenter center={c} zoom={z} />
         {onChange && <ClickToPin onPick={onChange} />}
         {value && (

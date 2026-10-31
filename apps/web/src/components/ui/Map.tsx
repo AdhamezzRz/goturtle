@@ -12,9 +12,9 @@ export const CAIRO_CENTER: [number, number] = [30.0444, 31.2357];
  * (e.g. a MapTiler / Mapbox / Stadia URL with your key) — remember to allow the
  * host in the API's CSP (img-src) via MAP_TILE_HOSTS.
  */
-const TILE_URL: string =
+export const TILE_URL: string =
   import.meta.env.VITE_MAP_TILE_URL || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-const TILE_ATTRIBUTION: string =
+export const TILE_ATTRIBUTION: string =
   import.meta.env.VITE_MAP_TILE_ATTRIBUTION || 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
 
 export type MarkerKind = 'hero' | 'hero-idle' | 'hero-offline' | 'order' | 'order-urgent' | 'hub' | 'pickup' | 'home' | 'done';

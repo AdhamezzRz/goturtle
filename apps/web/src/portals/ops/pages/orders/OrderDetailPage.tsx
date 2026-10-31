@@ -236,7 +236,7 @@ function MoneyCard({ o }: { o: OrderDetail }) {
       </div>
       <div className="mt-3 divide-y divide-ink-100 dark:divide-ink-800">
         <InfoRow label={t('ops.orders.detail.codAmount')}><span className="ltr">{money(o.codAmountCents)}</span></InfoRow>
-        {o.fees.breakdown.map((b) => (
+        {(o.fees.breakdown ?? []).map((b) => (
           <InfoRow key={b.key} label={t(`ops.orders.detail.fee.${feeKey(b.key)}`)}><span className="ltr">{money(b.cents)}</span></InfoRow>
         ))}
         <InfoRow label={<b className="text-ink-800 dark:text-ink-100">{t('ops.orders.detail.fee.total')}</b>}><b className="ltr">{money(o.fees.totalFeesCents)}</b></InfoRow>

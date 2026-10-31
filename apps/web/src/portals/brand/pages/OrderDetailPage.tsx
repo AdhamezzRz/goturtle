@@ -246,7 +246,7 @@ export default function OrderDetailPage() {
                 <Row label={isCod ? t('brand.order.codAmount') : t('brand.pay.PREPAID')} value={<Money cents={o.codAmountCents} />} />
               </div>
               <div className="py-2">
-                {o.fees.breakdown.map((b) => <Row key={b.key} muted label={t(`brand.fee.${b.key}`)} value={<Money cents={b.cents} />} />)}
+                {(o.fees.breakdown ?? []).map((b) => <Row key={b.key} muted label={t(`brand.fee.${b.key}`)} value={<Money cents={b.cents} />} />)}
                 <Row label={t('brand.order.totalFees')} value={<Money cents={o.fees.totalFeesCents} />} className="font-medium" />
                 {o.fees.returnFee ? <Row muted label={t('brand.fee.return')} value={<Money cents={o.fees.returnFee} />} /> : null}
               </div>

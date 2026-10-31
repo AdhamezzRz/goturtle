@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { TILE_ATTRIBUTION, TILE_URL } from '@/components/ui/Map';
 import { CAIRO_CENTER, pinIcon } from '@/components/ui/Map';
 
 function ClickToPick({ onPick }: { onPick: (lat: number, lng: number) => void }) {
@@ -23,10 +24,7 @@ export default function PinMap({ lat, lng, onPick, height = 260, recenterOn }: {
   return (
     <div className="overflow-hidden rounded-xl border border-ink-200 dark:border-ink-700" style={{ height }}>
       <MapContainer center={has ? [lat, lng] : recenterOn ?? CAIRO_CENTER} zoom={has ? 15 : 12} scrollWheelZoom className="h-full w-full">
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
         <ClickToPick onPick={onPick} />
         {has && (
           <Marker

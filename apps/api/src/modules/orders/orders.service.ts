@@ -374,11 +374,20 @@ export class OrdersService implements OrderIntake {
         vatCents: order.vatCents,
         totalFeesCents: order.totalFeesCents,
         feesPaidBy: order.feesPaidBy,
-        breakdown: (metadata as { pricing?: { breakdown?: unknown } } | null)?.pricing?.breakdown ?? null,
+        // Always a list: from the stored quote, or rebuilt from the fee columns (system-created legs have no quote).
+        breakdown:
+          ((metadata as { pricing?: { breakdown?: Array<{ key: string; cents: number }> } } | null)?.pricing?.breakdown ?? null) ??
+          [
+            { key: 'shipping', cents: order.shippingFeeCents },
+            { key: 'cod', cents: order.codFeeCents },
+            { key: 'extra', cents: order.extraFeesCents },
+            { key: 'vat', cents: order.vatCents },
+          ].filter((l) => l.cents > 0),
         returnFee: (metadata as { returnFee?: unknown } | null)?.returnFee ?? null,
       },
     };
     if (!staff) return { ...view, tags: (order.tags ?? []).filter((t) => t !== 'CUSTOMER_BLOCKED') };
+    view.tags = order.tags ?? [];
 
     const [customer] = await this.db.select().from(customers).where(eq(customers.id, order.customerId)).limit(1);
     return {
