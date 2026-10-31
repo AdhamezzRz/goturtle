@@ -10,10 +10,10 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "jest --runInBand",
-    "db:generate": "npx --yes drizzle-kit@0.31.5 generate",
+    "db:generate": "npm i --no-save --no-audit --no-fund drizzle-kit@0.31.5 && drizzle-kit generate",
     "db:migrate": "node dist/db/migrate.js",
     "db:seed": "node dist/db/seed.js",
-    "db:studio": "npx --yes drizzle-kit@0.31.5 studio"
+    "db:studio": "npm i --no-save --no-audit --no-fund drizzle-kit@0.31.5 && drizzle-kit studio"
   },
   "dependencies": {
     "@goturtle/shared": "*",
@@ -30,6 +30,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^22.18.0",
     "@types/papaparse": "^5.3.16",
+    "@types/web-push": "^3.6.4",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -42,7 +43,8 @@
     "mysql2": "^3.15.3",
     "papaparse": "^5.5.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.2.8",

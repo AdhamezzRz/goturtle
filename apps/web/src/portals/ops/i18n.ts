@@ -31,5 +31,11 @@ registerDictionary({
   'ops.nav.integrations': { en: 'Integrations', ar: 'التكاملات' },
   'ops.nav.settings': { en: 'Settings', ar: 'الإعدادات' },
   'ops.nav.audit': { en: 'Audit log', ar: 'سجل التدقيق' },
+  'ops.nav.integrity': { en: 'Delivery integrity', ar: 'نزاهة التوصيل' },
+  'ops.nav.claims': { en: 'Claims', ar: 'المطالبات' },
+  'ops.nav.partners': { en: 'Partner carriers', ar: 'شركات الشحن الشريكة' },
+  'ops.nav.forecast': { en: 'Demand forecast', ar: 'توقع الطلب' },
+  'ops.nav.advances': { en: 'Early payouts & advances', ar: 'الدفعات المبكرة والسلف' },
+  'ops.nav.collections': { en: 'Digital collections', ar: 'التحصيل الإلكتروني' },
   'ops.nav.system': { en: 'System & jobs', ar: 'النظام والمهام' },
 });

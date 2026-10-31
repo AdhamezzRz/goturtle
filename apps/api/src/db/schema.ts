@@ -16,6 +16,8 @@ import {
   PaymentMethod, PayoutMethod, PayoutStatus, PickupStatus, PricingTier, RunsheetStatus,
   ServiceLevel, SettlementCycle, SettlementStatus, ShiftStatus, TicketCategory, TicketPriority,
   TicketStatus, UserRole, UserStatus, VehicleType,
+  AddressSource, AdvanceStatus, AdvanceType, AttemptDisputeStatus, CallStatus, ClaimStatus, ClaimType,
+  CollectionMethod, CollectionStatus, ConfirmationStatus, InboundIntent, WeightDisputeStatus,
 } from '@goturtle/shared';
 import {
   boolean, date, double, index, int, mysqlEnum, mysqlTable, primaryKey, text, uniqueIndex, varchar,
@@ -282,6 +284,10 @@ export const customers = mysqlTable('customers', {
   refusedOrders: int().notNull().default(0),
   reliabilityScore: int().notNull().default(80), // 0..100
   isBlocked: boolean().notNull().default(false),
+  blockedReason: varchar({ length: 300 }),
+  blockedAt: ts(),
+  /** Network rule: COD not allowed for this phone — the brand must collect online first. */
+  requirePrepayment: boolean().notNull().default(false),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -604,6 +610,30 @@ export const orders = mysqlTable(
     internalNotes: varchar({ length: 2000 }),
     tags: jsonOf<string[]>(),
 
+    // RTO shield: customer confirms before dispatch; risky/unconfirmed parcels are held.
+    confirmationStatus: mysqlEnum(ConfirmationStatus).notNull().default('NOT_REQUIRED'),
+    confirmationRequestedAt: ts(),
+    confirmationRespondedAt: ts(),
+    confirmationChannel: varchar({ length: 20 }),
+    holdReason: varchar({ length: 60 }), // machine code while ON_HOLD (UNCONFIRMED, HIGH_RISK, PREPAY_REQUIRED, …)
+
+    // How the recipient paid at the door (cash vs digital transfer confirmed by finance).
+    collectionMethod: mysqlEnum(CollectionMethod),
+    collectionStatus: mysqlEnum(CollectionStatus).notNull().default('NOT_APPLICABLE'),
+    collectionReference: varchar({ length: 120 }),
+
+    // Hub weighing & re-pricing.
+    actualWeightGrams: int(),
+    dimensionsCm: jsonOf<{ l: number; w: number; h: number } | null>(),
+    weightStatus: mysqlEnum(WeightDisputeStatus).notNull().default('NONE'),
+    weightAdjustmentCents: cents(),
+
+    customerAddressId: ref(), // saved address used / created for this order
+    orderLinkId: ref(), // created from a social-seller order link
+    partnerCarrierId: ref(), // handed to a partner courier (outside our network)
+    partnerTrackingNumber: varchar({ length: 60 }),
+    handedToPartnerAt: ts(),
+
     settlementId: ref().references(() => settlements.id),
     cashHandoverId: ref().references(() => cashHandovers.id),
     parentOrderId: ref().references((): AnyMySqlColumn => orders.id),
@@ -624,6 +654,8 @@ export const orders = mysqlTable(
     index('orders_runsheet_idx').on(t.runsheetId),
     index('orders_pickup_idx').on(t.pickupId),
     index('orders_settlement_idx').on(t.settlementId),
+    index('orders_confirmation_idx').on(t.confirmationStatus, t.status),
+    index('orders_collection_idx').on(t.collectionStatus),
     index('orders_created_idx').on(t.createdAt),
   ],
 );
@@ -663,9 +695,16 @@ export const deliveryAttempts = mysqlTable(
     lat: double(),
     lng: double(),
     photoUrl: varchar({ length: 500 }),
+    /** Hero distance from the destination when reporting the attempt (geofence proof). */
+    distanceMeters: int(),
+    /** Logged call attempts to the recipient before reporting. */
+    callCount: int().notNull().default(0),
+    disputeStatus: mysqlEnum(AttemptDisputeStatus).notNull().default('NONE'),
+    disputedAt: ts(),
+    disputeNote: varchar({ length: 500 }),
     createdAt: createdAt(),
   },
-  (t) => [index('da_order_idx').on(t.orderId), index('da_courier_time_idx').on(t.courierId, t.createdAt)],
+  (t) => [index('da_order_idx').on(t.orderId), index('da_courier_time_idx').on(t.courierId, t.createdAt), index('da_dispute_idx').on(t.disputeStatus)],
 );
 
 // ---------------------------------------------------------------------------
@@ -954,4 +993,185 @@ export const jobLocks = mysqlTable('job_locks', {
   lockedUntil: ts().notNull(),
   lastRunAt: ts(),
   lastResult: varchar({ length: 1000 }),
+});
+
+// ---------------------------------------------------------------------------
+//  v1.1 — delivery integrity, address intelligence, money programs, intake
+// ---------------------------------------------------------------------------
+
+/** Calls from heroes to recipients (masked through a proxy number when a provider is configured). */
+export const callLogs = mysqlTable(
+  'call_logs',
+  {
+    id: id(),
+    orderId: ref().notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    courierId: ref().notNull().references(() => couriers.id),
+    provider: varchar({ length: 30 }).notNull(), // console | twilio_proxy | direct
+    providerCallId: varchar({ length: 120 }),
+    proxyNumber: varchar({ length: 20 }),
+    status: mysqlEnum(CallStatus).notNull().default('INITIATED'),
+    durationSeconds: int().notNull().default(0),
+    startedAt: createdAt(),
+    endedAt: ts(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('call_order_idx').on(t.orderId, t.createdAt), index('call_courier_idx').on(t.courierId, t.createdAt)],
+);
+
+/** Address book per customer phone — verified pins are reused across brands. */
+export const customerAddresses = mysqlTable(
+  'customer_addresses',
+  {
+    id: id(),
+    customerId: ref().notNull().references(() => customers.id, { onDelete: 'cascade' }),
+    label: varchar({ length: 60 }),
+    addressLine: varchar({ length: 500 }).notNull(),
+    building: varchar({ length: 50 }),
+    floor: varchar({ length: 20 }),
+    apartment: varchar({ length: 20 }),
+    landmark: varchar({ length: 200 }),
+    zoneId: ref().notNull().references(() => zones.id),
+    lat: double(),
+    lng: double(),
+    isVerified: boolean().notNull().default(false), // pin confirmed by the customer or a successful delivery
+    source: mysqlEnum(AddressSource).notNull().default('ORDER'),
+    usageCount: int().notNull().default(0),
+    deliveredCount: int().notNull().default(0),
+    lastUsedAt: ts(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('caddr_customer_idx').on(t.customerId, t.lastUsedAt)],
+);
+
+/** Lost / damaged / missing-item claims filed by brands, paid through the ledger. */
+export const claims = mysqlTable(
+  'claims',
+  {
+    id: id(),
+    code: varchar({ length: 24 }).notNull().unique(),
+    orderId: ref().notNull().references(() => orders.id),
+    brandId: ref().notNull().references(() => brands.id),
+    type: mysqlEnum(ClaimType).notNull(),
+    status: mysqlEnum(ClaimStatus).notNull().default('OPEN'),
+    claimedCents: int().notNull(),
+    approvedCents: cents(),
+    liabilityCapCents: cents(),
+    description: varchar({ length: 2000 }).notNull(),
+    evidence: jsonOf<string[]>(), // file URLs
+    decisionNote: varchar({ length: 1000 }),
+    decidedById: ref(),
+    decidedAt: ts(),
+    paidAt: ts(),
+    courierId: ref(), // hero held responsible (optional)
+    createdById: ref(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('claims_brand_status_idx').on(t.brandId, t.status), index('claims_order_idx').on(t.orderId)],
+);
+
+/** Early payouts of the wallet balance and advances against in-transit COD. */
+export const brandAdvances = mysqlTable(
+  'brand_advances',
+  {
+    id: id(),
+    code: varchar({ length: 24 }).notNull().unique(),
+    brandId: ref().notNull().references(() => brands.id),
+    type: mysqlEnum(AdvanceType).notNull(),
+    status: mysqlEnum(AdvanceStatus).notNull().default('REQUESTED'),
+    amountCents: int().notNull(),
+    feeCents: cents(),
+    recoveredCents: cents(),
+    method: mysqlEnum(PayoutMethod),
+    paymentReference: varchar({ length: 120 }),
+    notes: varchar({ length: 1000 }),
+    requestedById: ref(),
+    approvedById: ref(),
+    approvedAt: ts(),
+    paidAt: ts(),
+    recoveredAt: ts(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('adv_brand_status_idx').on(t.brandId, t.status)],
+);
+
+export type OrderLinkItem = { name: string; quantity: number; priceCents: number };
+
+/** Shareable order forms for social sellers: the buyer fills in their own name, phone and address. */
+export const orderLinks = mysqlTable(
+  'order_links',
+  {
+    id: id(),
+    code: varchar({ length: 16 }).notNull().unique(), // public slug: /o/<code>
+    brandId: ref().notNull().references(() => brands.id, { onDelete: 'cascade' }),
+    title: varchar({ length: 150 }).notNull(),
+    description: varchar({ length: 1000 }),
+    items: jsonOf<OrderLinkItem[]>().notNull(),
+    codAmountCents: cents(),
+    paymentMethod: mysqlEnum(PaymentMethod).notNull().default('COD'),
+    serviceLevel: mysqlEnum(ServiceLevel).notNull().default('STANDARD'),
+    weightGrams: int().notNull().default(1000),
+    allowOpening: boolean().notNull().default(false),
+    notes: varchar({ length: 500 }),
+    maxUses: int(), // null = unlimited
+    usesCount: int().notNull().default(0),
+    expiresAt: ts(),
+    isActive: boolean().notNull().default(true),
+    createdById: ref(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('olink_brand_idx').on(t.brandId)],
+);
+
+/** Web Push subscriptions (heroes, staff, brand users). */
+export const pushSubscriptions = mysqlTable(
+  'push_subscriptions',
+  {
+    id: id(),
+    userId: ref().notNull().references(() => users.id, { onDelete: 'cascade' }),
+    endpoint: varchar({ length: 700 }).notNull(),
+    endpointHash: varchar({ length: 64 }).notNull().unique(), // sha256(endpoint) — endpoints are too long to index
+    p256dh: varchar({ length: 200 }).notNull(),
+    auth: varchar({ length: 100 }).notNull(),
+    userAgent: varchar({ length: 300 }),
+    failures: int().notNull().default(0),
+    lastUsedAt: ts(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('push_user_idx').on(t.userId)],
+);
+
+/** Messages customers send back (WhatsApp / SMS replies) and what we understood. */
+export const inboundMessages = mysqlTable(
+  'inbound_messages',
+  {
+    id: id(),
+    channel: mysqlEnum(NotificationChannel).notNull(),
+    fromPhone: varchar({ length: 20 }).notNull(),
+    body: text(),
+    providerMessageId: varchar({ length: 120 }).unique(),
+    orderId: ref().references(() => orders.id, { onDelete: 'set null' }),
+    intent: mysqlEnum(InboundIntent).notNull().default('OTHER'),
+    payload: jsonOf<Record<string, unknown> | null>(),
+    processedAt: ts(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('inbound_phone_idx').on(t.fromPhone, t.createdAt), index('inbound_order_idx').on(t.orderId)],
+);
+
+/** Partner couriers for destinations outside our own network (manual or API handoff). */
+export const carrierPartners = mysqlTable('carrier_partners', {
+  id: id(),
+  code: varchar({ length: 20 }).notNull().unique(),
+  name: varchar({ length: 120 }).notNull(),
+  apiType: varchar({ length: 30 }).notNull().default('MANUAL'), // MANUAL | <provider adapter>
+  credentials: text(), // AES-256-GCM encrypted JSON
+  trackingUrlTemplate: varchar({ length: 300 }), // e.g. https://partner.example/track/{tn}
+  governorateCodes: jsonOf<string[]>(), // coverage
+  isActive: boolean().notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });

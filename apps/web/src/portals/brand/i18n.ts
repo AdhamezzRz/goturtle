@@ -7,6 +7,8 @@ registerDictionary({
   'brand.nav.newOrder': { en: 'New order', ar: 'طلب جديد' },
   'brand.nav.bulk': { en: 'Bulk upload', ar: 'رفع طلبات بالجملة' },
   'brand.nav.pickups': { en: 'Pickups', ar: 'مواعيد الاستلام' },
+  'brand.nav.orderLinks': { en: 'Order links', ar: 'روابط الطلب' },
+  'brand.nav.claims': { en: 'Claims', ar: 'المطالبات' },
   'brand.nav.group.business': { en: 'Business', ar: 'الأعمال' },
   'brand.nav.wallet': { en: 'Wallet & settlements', ar: 'المحفظة والتسويات' },
   'brand.nav.analytics': { en: 'Analytics', ar: 'التحليلات' },

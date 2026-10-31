@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
-import { BarChart3, Boxes, Code2, Headphones, LayoutDashboard, PackagePlus, PackageSearch, Settings, Upload, Users, Wallet } from 'lucide-react';
+import { BarChart3, Boxes, Code2, FileWarning, Headphones, LayoutDashboard, Link2, PackagePlus, PackageSearch, Settings, Upload, Users, Wallet } from 'lucide-react';
 import { AppShell, type NavGroup } from '@/components/layout/AppShell';
 import { Button, PageLoader } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
@@ -25,6 +25,8 @@ const p = {
   Settings: lazy(() => import('./pages/SettingsPage')),
   Notifications: lazy(() => import('./pages/NotificationsPage')),
   Profile: lazy(() => import('./pages/ProfilePage')),
+  Claims: lazy(() => import('./pages/ClaimsPage')),
+  OrderLinks: lazy(() => import('./pages/OrderLinksPage')),
 };
 
 export default function BrandApp() {
@@ -38,6 +40,7 @@ export default function BrandApp() {
         { to: '/brand/orders/new', label: t('brand.nav.newOrder'), icon: <PackagePlus />, permission: 'orders.create' },
         { to: '/brand/orders/bulk', label: t('brand.nav.bulk'), icon: <Upload />, permission: 'orders.create' },
         { to: '/brand/pickups', label: t('brand.nav.pickups'), icon: <Boxes />, permission: 'pickups.read' },
+        { to: '/brand/order-links', label: t('brand.nav.orderLinks'), icon: <Link2 />, permission: 'orders.create' },
       ],
     },
     {
@@ -46,6 +49,7 @@ export default function BrandApp() {
         { to: '/brand/wallet', label: t('brand.nav.wallet'), icon: <Wallet />, permission: 'finance.read' },
         { to: '/brand/analytics', label: t('brand.nav.analytics'), icon: <BarChart3 />, permission: 'analytics.read' },
         { to: '/brand/support', label: t('brand.nav.support'), icon: <Headphones />, permission: 'tickets.read' },
+        { to: '/brand/claims', label: t('brand.nav.claims'), icon: <FileWarning />, permission: 'tickets.read' },
       ],
     },
     {
@@ -95,6 +99,8 @@ export default function BrandApp() {
           <Route path="settings" element={<p.Settings />} />
           <Route path="notifications" element={<p.Notifications />} />
           <Route path="profile" element={<p.Profile />} />
+          <Route path="claims" element={<p.Claims />} />
+          <Route path="order-links" element={<p.OrderLinks />} />
           <Route path="*" element={<Navigate to="/brand" replace />} />
         </Routes>
       </Suspense>

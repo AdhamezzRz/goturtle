@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import {
   Banknote, BarChart3, Bike, Boxes, Building2, CalendarClock, Cog, FileClock, Headphones, LayoutDashboard, Map, Network,
   PackageSearch, Plug, Radar, ReceiptText, ScanLine, Server, Tags, Truck, Users, UserSquare2, Wallet,
+  ShieldCheck, FileWarning, Handshake, TrendingUp, HandCoins, QrCode,
 } from 'lucide-react';
 import { AppShell, type NavGroup } from '@/components/layout/AppShell';
 import { PageLoader } from '@/components/ui';
@@ -44,6 +45,13 @@ const p = {
   System: lazy(() => import('./pages/system/SystemPage')),
   Notifications: lazy(() => import('./pages/account/NotificationsPage')),
   Profile: lazy(() => import('./pages/account/ProfilePage')),
+  Integrity: lazy(() => import('./pages/integrity/IntegrityPage')),
+  Claims: lazy(() => import('./pages/claims/ClaimsPage')),
+  ClaimDetail: lazy(() => import('./pages/claims/ClaimDetailPage')),
+  Advances: lazy(() => import('./pages/finance/AdvancesPage')),
+  Collections: lazy(() => import('./pages/finance/CollectionsPage')),
+  Partners: lazy(() => import('./pages/partners/PartnersPage')),
+  Forecast: lazy(() => import('./pages/forecast/ForecastPage')),
 };
 
 export default function OpsApp() {
@@ -65,6 +73,9 @@ export default function OpsApp() {
         { to: '/ops/hub', label: t('ops.nav.hub'), icon: <ScanLine />, permission: 'hubs.scan' },
         { to: '/ops/customers', label: t('ops.nav.customers'), icon: <UserSquare2 />, permission: 'orders.read' },
         { to: '/ops/tickets', label: t('ops.nav.tickets'), icon: <Headphones />, permission: 'tickets.read' },
+        { to: '/ops/integrity', label: t('ops.nav.integrity'), icon: <ShieldCheck />, permission: 'orders.read' },
+        { to: '/ops/claims', label: t('ops.nav.claims'), icon: <FileWarning />, permission: 'orders.read' },
+        { to: '/ops/partners', label: t('ops.nav.partners'), icon: <Handshake />, permission: 'dispatch.manage' },
       ],
     },
     {
@@ -73,6 +84,7 @@ export default function OpsApp() {
         { to: '/ops/heroes', label: t('ops.nav.heroes'), icon: <Bike />, permission: 'couriers.read' },
         { to: '/ops/shifts', label: t('ops.nav.shifts'), icon: <CalendarClock />, permission: 'shifts.read' },
         { to: '/ops/cash', label: t('ops.nav.cash'), icon: <Wallet />, permission: 'cash.read' },
+        { to: '/ops/forecast', label: t('ops.nav.forecast'), icon: <TrendingUp />, permission: 'shifts.read' },
       ],
     },
     {
@@ -81,6 +93,8 @@ export default function OpsApp() {
         { to: '/ops/finance', end: true, label: t('ops.nav.finance'), icon: <Banknote />, permission: 'finance.read' },
         { to: '/ops/finance/settlements', label: t('ops.nav.settlements'), icon: <ReceiptText />, permission: 'finance.read' },
         { to: '/ops/finance/payouts', label: t('ops.nav.payouts'), icon: <Users />, permission: 'finance.read' },
+        { to: '/ops/finance/advances', label: t('ops.nav.advances'), icon: <HandCoins />, permission: 'finance.read' },
+        { to: '/ops/finance/collections', label: t('ops.nav.collections'), icon: <QrCode />, permission: 'finance.read' },
       ],
     },
     {
@@ -141,6 +155,13 @@ export default function OpsApp() {
           <Route path="system" element={<p.System />} />
           <Route path="notifications" element={<p.Notifications />} />
           <Route path="profile" element={<p.Profile />} />
+          <Route path="integrity" element={<p.Integrity />} />
+          <Route path="claims" element={<p.Claims />} />
+          <Route path="claims/:id" element={<p.ClaimDetail />} />
+          <Route path="finance/advances" element={<p.Advances />} />
+          <Route path="finance/collections" element={<p.Collections />} />
+          <Route path="partners" element={<p.Partners />} />
+          <Route path="forecast" element={<p.Forecast />} />
           <Route path="*" element={<Navigate to="/ops" replace />} />
         </Routes>
       </Suspense>

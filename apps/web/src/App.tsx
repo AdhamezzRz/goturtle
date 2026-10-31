@@ -11,6 +11,7 @@ const OpsApp = lazy(() => import('@/portals/ops/OpsApp'));
 const BrandApp = lazy(() => import('@/portals/brand/BrandApp'));
 const HeroApp = lazy(() => import('@/portals/hero/HeroApp'));
 const CustomerApp = lazy(() => import('@/portals/customer/CustomerApp'));
+const OrderLinkPage = lazy(() => import('@/portals/public/OrderLinkPage'));
 
 /**
  * One SPA, four portals (code-split):
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/hero/*" element={<RequirePortal portal="hero"><HeroApp /></RequirePortal>} />
         <Route path="/track/*" element={<CustomerApp />} />
         <Route path="/t/*" element={<CustomerApp />} />
+        <Route path="/o/:code" element={<OrderLinkPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

@@ -47,7 +47,28 @@ export interface TransitionOptions {
   meta?: RequestMetaInfo | null;
   /** Override the clock (demo seed backfill). */
   at?: Date;
+  /**
+   * Feature-specific data for registered guards/effects, e.g.
+   * `{ heroPosition: { lat, lng } }`, `{ collection: { method: 'INSTAPAY', reference } }`.
+   * Keys are namespaced by the module that reads them.
+   */
+  extensions?: Record<string, unknown>;
 }
+
+export interface TransitionContext {
+  tx: DbOrTx;
+  fx: PostCommit;
+  /** The order as it was before this transition (row locked FOR UPDATE). */
+  order: OrderRow;
+  to: OrderStatus;
+  actor: ActorContext;
+  opts: TransitionOptions;
+}
+
+/** Runs inside the transaction before anything changes; throw a DomainError to refuse the transition. */
+export type TransitionGuard = (ctx: TransitionContext) => Promise<void> | void;
+/** Runs inside the transaction after the transition is written (same atomic unit). */
+export type TransitionEffect = (ctx: TransitionContext & { updated: OrderRow }) => Promise<void> | void;
 
 /** Statuses that are internal plumbing and hidden from the customer timeline by default. */
 const PRIVATE_STATUSES: readonly OrderStatus[] = ['PICKUP_ASSIGNED', 'ASSIGNED', 'ON_HOLD', 'LOST', 'DAMAGED'];
@@ -69,6 +90,22 @@ const HERO_HELD: readonly OrderStatus[] = ['PICKUP_ASSIGNED', 'PICKED_UP', 'ASSI
 @Injectable()
 export class OrderWorkflowService {
   private readonly log = new Logger('OrderWorkflow');
+  private readonly guards: Array<{ name: string; fn: TransitionGuard }> = [];
+  private readonly effects: Array<{ name: string; fn: TransitionEffect }> = [];
+
+  /**
+   * Extension points for feature modules (delivery integrity, money programs…):
+   * register in `onModuleInit` instead of editing this state machine.
+   */
+  registerGuard(name: string, fn: TransitionGuard) {
+    if (this.guards.some((g) => g.name === name)) throw new Error(`Transition guard ${name} registered twice`);
+    this.guards.push({ name, fn });
+  }
+
+  registerEffect(name: string, fn: TransitionEffect) {
+    if (this.effects.some((e) => e.name === name)) throw new Error(`Transition effect ${name} registered twice`);
+    this.effects.push({ name, fn });
+  }
 
   constructor(
     @InjectDb() private readonly db: Db,
@@ -108,6 +145,7 @@ export class OrderWorkflowService {
     const order = await this.lock(tx, orderId);
     const from = order.status;
     this.assertAllowed(order, to, actor);
+    for (const g of this.guards) await g.fn({ tx, fx, order, to, actor, opts });
     const now = opts.at ?? new Date();
 
     const patch: Partial<OrderInsert> = { status: to };
@@ -269,6 +307,7 @@ export class OrderWorkflowService {
       actorId: actor.actorId,
       at: now,
     } satisfies OrderStatusChangedEvent);
+    for (const e of this.effects) await e.fn({ tx, fx, order, to, actor, opts, updated });
 
     // ---------------------------------------------------------------- automatic follow-ups
     if (to === 'FAILED_ATTEMPT') {

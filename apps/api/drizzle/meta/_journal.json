@@ -8,6 +8,13 @@
       "when": 1793401173219,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1793488906915,
+      "tag": "0001_v1_1_integrity_money_intake",
+      "breakpoints": true
     }
   ]
 }

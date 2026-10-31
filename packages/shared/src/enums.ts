@@ -55,7 +55,7 @@ export type PaymentMethod = keyof typeof PaymentMethod;
 export const FeesPayer = e('BRAND', 'RECIPIENT');
 export type FeesPayer = keyof typeof FeesPayer;
 
-export const OrderSource = e('PORTAL', 'API', 'BULK_UPLOAD', 'SHOPIFY', 'WOOCOMMERCE', 'ADMIN');
+export const OrderSource = e('PORTAL', 'API', 'BULK_UPLOAD', 'SHOPIFY', 'WOOCOMMERCE', 'ADMIN', 'ORDER_LINK', 'EASYORDERS', 'ZID', 'SALLA', 'YOUCAN');
 export type OrderSource = keyof typeof OrderSource;
 
 export const FailureReason = e(
@@ -107,6 +107,7 @@ export type LedgerAccountType = keyof typeof LedgerAccountType;
 export const LedgerTxKind = e(
   'COD_COLLECTED', 'ORDER_FEES', 'FEE_REVERSAL', 'COURIER_EARNING', 'CASH_HANDOVER', 'CASH_VARIANCE',
   'BRAND_PAYOUT', 'COURIER_PAYOUT', 'COURIER_ADJUSTMENT', 'MANUAL_ADJUSTMENT',
+  'DIGITAL_COLLECTION', 'BRAND_ADVANCE', 'ADVANCE_RECOVERY', 'CLAIM_PAYOUT', 'FEE_ADJUSTMENT',
 );
 export type LedgerTxKind = keyof typeof LedgerTxKind;
 
@@ -122,7 +123,7 @@ export type AdjustmentType = keyof typeof AdjustmentType;
 export const DeliveryStatus = e('PENDING', 'SUCCESS', 'FAILED', 'DEAD');
 export type DeliveryStatus = keyof typeof DeliveryStatus;
 
-export const IntegrationProvider = e('SHOPIFY', 'WOOCOMMERCE', 'ZID', 'SALLA', 'EASYORDERS', 'CUSTOM');
+export const IntegrationProvider = e('SHOPIFY', 'WOOCOMMERCE', 'ZID', 'SALLA', 'EASYORDERS', 'YOUCAN', 'CUSTOM');
 export type IntegrationProvider = keyof typeof IntegrationProvider;
 
 export const IntegrationStatus = e('ACTIVE', 'PAUSED', 'ERROR');
@@ -136,7 +137,7 @@ export type NotificationStatus = keyof typeof NotificationStatus;
 
 export const TicketCategory = e(
   'DELAY', 'DAMAGED', 'LOST', 'COD_ISSUE', 'ADDRESS_CHANGE', 'RESCHEDULE', 'COMPLAINT',
-  'COURIER_BEHAVIOR', 'INQUIRY', 'OTHER',
+  'COURIER_BEHAVIOR', 'INQUIRY', 'OTHER', 'ATTEMPT_DISPUTE', 'WEIGHT_DISPUTE',
 );
 export type TicketCategory = keyof typeof TicketCategory;
 
@@ -145,3 +146,46 @@ export type TicketPriority = keyof typeof TicketPriority;
 
 export const TicketStatus = e('OPEN', 'IN_PROGRESS', 'WAITING_ON_CUSTOMER', 'RESOLVED', 'CLOSED');
 export type TicketStatus = keyof typeof TicketStatus;
+
+// ---------------------------------------------------------------------------
+//  Delivery integrity, address intelligence, money programs, intake (v1.1)
+// ---------------------------------------------------------------------------
+
+/** Customer confirmation before dispatch (RTO shield). */
+export const ConfirmationStatus = e('NOT_REQUIRED', 'PENDING', 'CONFIRMED', 'RESCHEDULED', 'DECLINED', 'NO_RESPONSE');
+export type ConfirmationStatus = keyof typeof ConfirmationStatus;
+
+/** How the recipient paid at the door. */
+export const CollectionMethod = e('CASH', 'INSTAPAY', 'WALLET', 'CARD', 'PAYMENT_LINK');
+export type CollectionMethod = keyof typeof CollectionMethod;
+
+/** Digital collection lifecycle (finance confirms transfers into the company account). */
+export const CollectionStatus = e('NOT_APPLICABLE', 'PENDING_CONFIRMATION', 'CONFIRMED', 'REJECTED');
+export type CollectionStatus = keyof typeof CollectionStatus;
+
+export const CallStatus = e('INITIATED', 'RINGING', 'ANSWERED', 'NO_ANSWER', 'BUSY', 'FAILED', 'REPORTED');
+export type CallStatus = keyof typeof CallStatus;
+
+export const AttemptDisputeStatus = e('NONE', 'CONFIRMED_BY_CUSTOMER', 'DISPUTED', 'UPHELD', 'REJECTED');
+export type AttemptDisputeStatus = keyof typeof AttemptDisputeStatus;
+
+export const AddressSource = e('ORDER', 'CUSTOMER_PIN', 'WHATSAPP_LOCATION', 'GEOCODER', 'STAFF');
+export type AddressSource = keyof typeof AddressSource;
+
+export const WeightDisputeStatus = e('NONE', 'ADJUSTED', 'DISPUTED', 'ACCEPTED', 'REVERSED');
+export type WeightDisputeStatus = keyof typeof WeightDisputeStatus;
+
+export const ClaimType = e('LOST', 'DAMAGED', 'MISSING_ITEMS', 'WRONG_ITEM', 'DELAYED');
+export type ClaimType = keyof typeof ClaimType;
+
+export const ClaimStatus = e('OPEN', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'PAID');
+export type ClaimStatus = keyof typeof ClaimStatus;
+
+export const AdvanceType = e('EARLY_PAYOUT', 'COD_ADVANCE');
+export type AdvanceType = keyof typeof AdvanceType;
+
+export const AdvanceStatus = e('REQUESTED', 'APPROVED', 'PAID', 'REJECTED', 'RECOVERED', 'CANCELLED');
+export type AdvanceStatus = keyof typeof AdvanceStatus;
+
+export const InboundIntent = e('CONFIRM', 'RESCHEDULE', 'CANCEL', 'ATTEMPT_TRUE', 'ATTEMPT_FALSE', 'LOCATION', 'OTHER');
+export type InboundIntent = keyof typeof InboundIntent;

@@ -8,6 +8,14 @@ import { DatabaseModule } from './core/database.module';
 import { BootstrapService } from './core/bootstrap.service';
 import { LedgerModule } from './core/ledger/ledger.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DeliveryIntegrityModule } from './modules/delivery-integrity/delivery-integrity.module';
+import { AddressBookModule } from './modules/address-book/address-book.module';
+import { MoneyProgramsModule } from './modules/money-programs/money-programs.module';
+import { ClaimsModule } from './modules/claims/claims.module';
+import { OrderLinksModule } from './modules/order-links/order-links.module';
+import { PartnersModule } from './modules/partners/partners.module';
+import { ForecastingModule } from './modules/forecasting/forecasting.module';
+import { PushModule } from './modules/push/push.module';
 import { NetworkModule } from './modules/network/network.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { CustomersModule } from './modules/customers/customers.module';
@@ -65,6 +73,15 @@ import { PaymentsModule } from './modules/payments/payments.module';
     AnalyticsModule,
     SettingsModule,
     PaymentsModule,
+    // v1.1
+    DeliveryIntegrityModule,
+    AddressBookModule,
+    MoneyProgramsModule,
+    ClaimsModule,
+    OrderLinksModule,
+    PartnersModule,
+    ForecastingModule,
+    PushModule,
   ],
   providers: [
     BootstrapService,
