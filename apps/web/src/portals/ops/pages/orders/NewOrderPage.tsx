@@ -143,8 +143,8 @@ export default function NewOrderPage() {
           <p className="mt-1 text-sm text-ink-500">{t('ops.orders.col.tracking')}</p>
           <p className="mt-2"><Mono className="text-2xl font-bold text-ink-900 dark:text-white">{created.trackingNumber}</Mono></p>
           <div className="mt-5 grid grid-cols-2 gap-3 text-start">
-            <div className="rounded-xl bg-sand-50 p-3 dark:bg-sand-900/30"><p className="text-xs text-sand-800 dark:text-sand-200">{t('ops.orders.create.collectFromRecipient')}</p><p className="ltr text-start font-display text-lg font-bold">{money(created.collectCents)}</p></div>
-            <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><p className="text-xs text-ink-500">{t('ops.orders.detail.fee.total')}</p><p className="ltr text-start font-display text-lg font-bold">{money(created.totalFeesCents)}</p></div>
+            <div className="rounded-xl bg-sand-50 p-3 dark:bg-sand-900/30"><p className="text-xs text-sand-800 dark:text-sand-200">{t('ops.orders.create.collectFromRecipient')}</p><p className="font-display text-lg font-bold"><span className="ltr">{money(created.collectCents)}</span></p></div>
+            <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><p className="text-xs text-ink-500">{t('ops.orders.detail.fee.total')}</p><p className="font-display text-lg font-bold"><span className="ltr">{money(created.totalFeesCents)}</span></p></div>
           </div>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <LinkButton to={`/ops/orders/labels?ids=${created.id}`} variant="primary" size="md" icon={<Printer />}>{t('ops.orders.detail.label')}</LinkButton>
@@ -270,22 +270,22 @@ export default function NewOrderPage() {
                   {quote.data.quote.breakdown.map((b) => (
                     <div key={b.key} className="flex justify-between py-1.5">
                       <dt className="text-ink-500">{t(`ops.orders.detail.fee.${['shipping', 'cod', 'weight', 'insurance', 'exchange', 'vat'].includes(b.key) ? b.key : 'extra'}`)}</dt>
-                      <dd className="ltr">{money(b.cents)}</dd>
+                      <dd><span className="ltr">{money(b.cents)}</span></dd>
                     </div>
                   ))}
                   <div className="flex justify-between py-2 font-semibold">
                     <dt>{t('ops.orders.detail.fee.total')}</dt>
-                    <dd className="ltr font-display text-lg">{money(quote.data.quote.totalFeesCents)}</dd>
+                    <dd className="font-display text-lg"><span className="ltr">{money(quote.data.quote.totalFeesCents)}</span></dd>
                   </div>
                 </dl>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded-xl bg-sand-50 p-3 dark:bg-sand-900/30">
                     <p className="text-[11px] text-sand-800 dark:text-sand-200">{t('ops.orders.create.collectFromRecipient')}</p>
-                    <p className="ltr text-start font-display font-bold">{money(quote.data.quote.collectFromRecipientCents)}</p>
+                    <p className="font-display font-bold"><span className="ltr">{money(quote.data.quote.collectFromRecipientCents)}</span></p>
                   </div>
                   <div className="rounded-xl bg-turtle-50 p-3 dark:bg-turtle-950/50">
                     <p className="text-[11px] text-turtle-800 dark:text-turtle-200">{t('ops.orders.detail.netToBrand')}</p>
-                    <p className="ltr text-start font-display font-bold">{money(quote.data.quote.netToBrandCents)}</p>
+                    <p className="font-display font-bold"><span className="ltr">{money(quote.data.quote.netToBrandCents)}</span></p>
                   </div>
                 </div>
               </div>

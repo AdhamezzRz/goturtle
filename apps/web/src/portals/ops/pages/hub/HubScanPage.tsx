@@ -342,7 +342,7 @@ function LatestCard({ item }: { item: FeedItem }) {
             <Mono className="mt-1 block text-lg font-bold">{r.trackingNumber}</Mono>
             <p className="text-sm text-ink-500">{t('ops.hub.loaded', { l: num(r.progress.loaded), t: num(r.progress.total) })}</p>
           </div>
-          {r.routeSequence != null && <p className="ltr font-display text-5xl font-black">#{r.routeSequence}</p>}
+          {r.routeSequence != null && <p className="font-display text-5xl font-black"><span className="ltr">#{r.routeSequence}</span></p>}
         </div>
       </div>
     );

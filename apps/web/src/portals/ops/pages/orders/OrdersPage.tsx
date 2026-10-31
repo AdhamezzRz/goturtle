@@ -109,7 +109,7 @@ export default function OrdersPage() {
       cell: (r) => (
         <div className="max-w-[180px]">
           <p className="truncate font-medium text-ink-900 dark:text-ink-100">{r.recipientName}</p>
-          <p className="ltr truncate text-start text-xs text-ink-500">{phone(r.recipientPhone)}</p>
+          <p className="truncate text-xs text-ink-500"><span className="ltr">{phone(r.recipientPhone)}</span></p>
         </div>
       ),
     },
@@ -120,7 +120,7 @@ export default function OrdersPage() {
       cell: (r) => (
         <div className="max-w-[150px]">
           <p className="truncate">{zoneName(r)}</p>
-          {r.hub && <p className="ltr truncate text-start text-[11px] text-ink-400">{r.hub.code}</p>}
+          {r.hub && <p className="truncate text-[11px] text-ink-400"><span className="ltr">{r.hub.code}</span></p>}
         </div>
       ),
     },
@@ -139,7 +139,7 @@ export default function OrdersPage() {
       header: t('ops.orders.col.cod'),
       cell: (r) => (
         <div className="space-y-1">
-          {r.collectCents ? <p className="ltr whitespace-nowrap text-start font-semibold text-sand-700 dark:text-sand-300">{money(r.collectCents)}</p> : <Badge>{t('ops.orders.prepaid')}</Badge>}
+          {r.collectCents ? <p className="whitespace-nowrap font-semibold text-sand-700 dark:text-sand-300"><span className="ltr">{money(r.collectCents)}</span></p> : <Badge>{t('ops.orders.prepaid')}</Badge>}
           {r.paymentMethod === 'COD' && r.riskLevel !== 'LOW' && <RiskBadge score={r.riskScore} />}
         </div>
       ),

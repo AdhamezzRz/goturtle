@@ -59,7 +59,7 @@ export default function PickupsPage() {
       cell: (p) => (
         <div className="whitespace-nowrap">
           <p>{dateOnly(p.scheduledDate)}</p>
-          {p.timeWindow && <p className="ltr text-start text-xs text-ink-500">{p.timeWindow}</p>}
+          {p.timeWindow && <p className="text-xs text-ink-500"><span className="ltr">{p.timeWindow}</span></p>}
         </div>
       ),
     },

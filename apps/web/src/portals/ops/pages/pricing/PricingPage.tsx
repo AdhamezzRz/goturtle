@@ -270,14 +270,14 @@ function Simulator({ card }: { card: RateCard | null }) {
           <>
             <dl className="divide-y divide-ink-200/70 text-sm dark:divide-ink-700">
               {result.breakdown.map((b) => (
-                <div key={b.key} className="flex justify-between py-1.5"><dt className="text-ink-500">{feeLabel(b.key)}</dt><dd className="ltr">{money(b.cents)}</dd></div>
+                <div key={b.key} className="flex justify-between py-1.5"><dt className="text-ink-500">{feeLabel(b.key)}</dt><dd><span className="ltr">{money(b.cents)}</span></dd></div>
               ))}
-              <div className="flex justify-between py-2 font-semibold"><dt>{t('ops.pricing.sim.total')}</dt><dd className="ltr font-display text-lg">{money(result.totalFeesCents)}</dd></div>
+              <div className="flex justify-between py-2 font-semibold"><dt>{t('ops.pricing.sim.total')}</dt><dd className="font-display text-lg"><span className="ltr">{money(result.totalFeesCents)}</span></dd></div>
             </dl>
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-white p-2 dark:bg-ink-900"><p className="text-[11px] text-ink-500">{t('ops.pricing.sim.collect')}</p><p className="ltr font-display font-bold text-sand-700 dark:text-sand-300">{money(result.collectFromRecipientCents)}</p></div>
+              <div className="rounded-xl bg-white p-2 dark:bg-ink-900"><p className="text-[11px] text-ink-500">{t('ops.pricing.sim.collect')}</p><p className="font-display font-bold text-sand-700 dark:text-sand-300"><span className="ltr">{money(result.collectFromRecipientCents)}</span></p></div>
               <div className="rounded-xl bg-white p-2 dark:bg-ink-900"><p className="text-[11px] text-ink-500">{t('ops.pricing.sim.net')}</p><p className={cn('ltr font-display font-bold', result.netToBrandCents < 0 ? 'text-red-600' : 'text-turtle-700 dark:text-turtle-400')}>{money(result.netToBrandCents)}</p></div>
-              <div className="rounded-xl bg-white p-2 dark:bg-ink-900"><p className="text-[11px] text-ink-500">{t('ops.pricing.sim.return')}</p><p className="ltr font-display font-bold">{rf != null ? money(rf) : '—'}</p></div>
+              <div className="rounded-xl bg-white p-2 dark:bg-ink-900"><p className="text-[11px] text-ink-500">{t('ops.pricing.sim.return')}</p><p className="font-display font-bold"><span className="ltr">{rf != null ? money(rf) : '—'}</span></p></div>
             </div>
           </>
         )}

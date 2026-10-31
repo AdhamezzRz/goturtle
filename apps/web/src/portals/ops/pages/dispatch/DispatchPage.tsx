@@ -302,7 +302,7 @@ function Runsheets({ hubId, date, status, page, setF }: { hubId: string; date: s
   const list = useQuery({ queryKey: ['runsheets', query], queryFn: () => api<Paginated<RunsheetRow>>('/runsheets', { query }), placeholderData: keepPreviousData });
   const columns: Column<RunsheetRow>[] = [
     { key: 'code', header: t('ops.dispatch.rs.col.code'), cell: (r) => <Mono className="font-semibold">{r.code}</Mono> },
-    { key: 'hero', header: t('ops.dispatch.rs.col.hero'), cell: (r) => <div><p className="font-medium">{r.courier.name}</p><p className="ltr text-start text-xs text-ink-400">{r.hub?.code}</p></div> },
+    { key: 'hero', header: t('ops.dispatch.rs.col.hero'), cell: (r) => <div><p className="font-medium">{r.courier.name}</p><p className="text-xs text-ink-400"><span className="ltr">{r.hub?.code}</span></p></div> },
     { key: 'status', header: t('ops.dispatch.rs.status'), cell: (r) => <StateBadge value={r.status} label={t(`ops.opsa.rs.${r.status}`)} /> },
     {
       key: 'progress',
@@ -323,7 +323,7 @@ function Runsheets({ hubId, date, status, page, setF }: { hubId: string; date: s
       hideBelow: 'lg',
       cell: (r) => (
         <div className="w-40">
-          <p className="ltr text-start text-xs"><b className="text-sand-700 dark:text-sand-300">{money(r.collectedCents)}</b> <span className="text-ink-400">/ {money(r.expectedCodCents)}</span></p>
+          <p className="text-xs"><span className="ltr"><b className="text-sand-700 dark:text-sand-300">{money(r.collectedCents)}</b> <span className="text-ink-400">/ {money(r.expectedCodCents)}</span></span></p>
           <ProgressBar value={r.expectedCodCents ? r.collectedCents / r.expectedCodCents : 0} tone="sand" className="mt-1 h-1.5" />
         </div>
       ),

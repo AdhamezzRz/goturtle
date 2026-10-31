@@ -227,11 +227,11 @@ function MoneyCard({ o }: { o: OrderDetail }) {
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl bg-sand-50 p-3 dark:bg-sand-900/30">
           <p className="text-xs text-sand-800 dark:text-sand-200">{t('ops.orders.detail.collect')}</p>
-          <p className="ltr text-start font-display text-xl font-bold text-sand-800 dark:text-sand-200">{money(o.collectCents)}</p>
+          <p className="font-display text-xl font-bold text-sand-800 dark:text-sand-200"><span className="ltr">{money(o.collectCents)}</span></p>
         </div>
         <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60">
           <p className="text-xs text-ink-500">{t('ops.orders.detail.collected')}</p>
-          <p className={cn('ltr text-start font-display text-xl font-bold', o.collectedCents ? 'text-turtle-700 dark:text-turtle-400' : 'text-ink-400')}>{money(o.collectedCents)}</p>
+          <p className={cn('font-display text-xl font-bold', o.collectedCents ? 'text-turtle-700 dark:text-turtle-400' : 'text-ink-400')}><span className="ltr">{money(o.collectedCents)}</span></p>
         </div>
       </div>
       <div className="mt-3 divide-y divide-ink-100 dark:divide-ink-800">

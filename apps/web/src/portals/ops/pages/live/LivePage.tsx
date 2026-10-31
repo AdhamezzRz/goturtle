@@ -156,7 +156,7 @@ export default function LivePage() {
             <div className="grid grid-cols-3 gap-2 md:hidden">
               {counters.slice(0, 6).map((x) => (
                 <div key={x.k} className="rounded-xl bg-ink-50 px-2 py-1.5 text-center dark:bg-ink-800/60">
-                  <p className="ltr font-display text-sm font-bold text-ink-900 dark:text-white">{x.v}</p>
+                  <p className="font-display text-sm font-bold text-ink-900 dark:text-white"><span className="ltr">{x.v}</span></p>
                   <p className="truncate text-[11px] text-ink-500">{t(`ops.live.c.${x.k}`)}</p>
                 </div>
               ))}
@@ -415,7 +415,7 @@ function HeroDrawer({ hero, onClose, orders }: { hero: LiveHero | null; onClose:
           </div>
           <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60">
             <p className="text-xs text-ink-500">{t('ops.live.tab.orders')}</p>
-            <p className="ltr mt-0.5 text-start text-sm font-semibold">{num(orders)}</p>
+            <p className="mt-0.5 text-sm font-semibold"><span className="ltr">{num(orders)}</span></p>
           </div>
         </div>
 

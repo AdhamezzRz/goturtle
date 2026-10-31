@@ -180,8 +180,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="w-20 shrink-0 text-end">
-                        <p className="ltr text-sm font-semibold text-ink-900 dark:text-white">{num(z.created)}</p>
-                        <p className="ltr text-[11px] text-ink-500">{z.successRate == null ? '—' : pct(z.successRate)}</p>
+                        <p className="text-sm font-semibold text-ink-900 dark:text-white"><span className="ltr">{num(z.created)}</span></p>
+                        <p className="text-[11px] text-ink-500"><span className="ltr">{z.successRate == null ? '—' : pct(z.successRate)}</span></p>
                       </div>
                     </Link>
                   </li>

@@ -128,7 +128,7 @@ export function Kpi({
       {icon && <div className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5', kpiTones[tone])}>{icon}</div>}
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-[13px] font-medium leading-snug text-ink-500 dark:text-ink-400">{label}</p>
-        {loading ? <Skeleton className="mt-2 h-7 w-20" /> : <p className="ltr mt-0.5 truncate text-start font-display text-lg font-bold leading-tight tracking-tight text-ink-900 dark:text-white sm:text-[22px]">{value}</p>}
+        {loading ? <Skeleton className="mt-2 h-7 w-20" /> : <p className="mt-0.5 truncate font-display text-lg font-bold leading-tight tracking-tight text-ink-900 dark:text-white sm:text-[22px]"><span className="ltr">{value}</span></p>}
         {hint && !loading && <div className="mt-0.5 line-clamp-2 text-xs text-ink-500 dark:text-ink-400">{hint}</div>}
       </div>
     </div>
@@ -375,7 +375,7 @@ export function MiniStat({ label, value, tone }: { label: ReactNode; value: Reac
   return (
     <div className="min-w-0 rounded-xl bg-ink-50 px-3 py-2 dark:bg-ink-800/60">
       <p className="truncate text-[11px] font-medium uppercase tracking-wide text-ink-500">{label}</p>
-      <p className={cn('ltr truncate text-start font-display text-base font-bold', tone === 'danger' ? 'text-red-600 dark:text-red-400' : tone === 'success' ? 'text-turtle-700 dark:text-turtle-400' : tone === 'cash' ? 'text-sand-700 dark:text-sand-300' : 'text-ink-900 dark:text-white')}>{value}</p>
+      <p className={cn('truncate font-display text-base font-bold', tone === 'danger' ? 'text-red-600 dark:text-red-400' : tone === 'success' ? 'text-turtle-700 dark:text-turtle-400' : tone === 'cash' ? 'text-sand-700 dark:text-sand-300' : 'text-ink-900 dark:text-white')}><span className="ltr">{value}</span></p>
     </div>
   );
 }

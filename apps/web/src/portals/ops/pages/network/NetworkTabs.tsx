@@ -275,7 +275,7 @@ export function TesterTab() {
               </div>
             </div>
             <dl className="grid grid-cols-3 gap-2 text-sm">
-              <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.confidence')}</dt><dd className="ltr text-start font-display text-lg font-bold">{pct(r.match.confidence, 0)}</dd></div>
+              <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.confidence')}</dt><dd className="font-display text-lg font-bold"><span className="ltr">{pct(r.match.confidence, 0)}</span></dd></div>
               <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.method')}</dt><dd className="font-semibold">{t(`ops.network.method.${r.match.method}`)}</dd></div>
               <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.matched')}</dt><dd className="truncate font-semibold">{r.match.matched}</dd></div>
             </dl>

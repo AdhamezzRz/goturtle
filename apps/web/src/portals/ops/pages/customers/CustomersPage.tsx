@@ -50,7 +50,7 @@ export default function CustomersPage() {
           <Avatar name={c.name} size={34} />
           <div className="min-w-0">
             <p className="flex items-center gap-2 font-medium text-ink-900 dark:text-ink-100">{c.name}{c.isBlocked && <Badge tone="danger">{t('ops.customers.blocked')}</Badge>}</p>
-            <p className="ltr text-start text-xs text-ink-500">{phone(c.phone)}</p>
+            <p className="text-xs text-ink-500"><span className="ltr">{phone(c.phone)}</span></p>
           </div>
         </div>
       ),

@@ -342,20 +342,20 @@ function ManifestPrint({ m }: { m: Manifest }) {
       <div className="flex items-start justify-between border-b-2 border-ink-900 pb-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest">GoTurtle · {t('ops.dispatch.d.manifestTitle')}</p>
-          <p className="ltr font-mono text-2xl font-bold">{m.code}</p>
+          <p className="font-mono text-2xl font-bold"><span className="ltr">{m.code}</span></p>
           <p className="text-sm">{dateOnly(m.date)} · {m.hub?.name} (<span className="ltr">{m.hub?.code}</span>)</p>
         </div>
         <div className="text-end text-sm">
           <p className="font-semibold">{m.hero.name} · <span className="ltr">{m.hero.code}</span></p>
-          <p className="ltr">{m.hero.phone}</p>
+          <p><span className="ltr">{m.hero.phone}</span></p>
           <p>{t(`ops.opsa.vehicle.${m.hero.vehicleType}`)}{m.hero.vehiclePlate ? ` · ${m.hero.vehiclePlate}` : ''}</p>
         </div>
       </div>
       <div className="my-3 grid grid-cols-4 gap-3 text-sm">
-        <div><p className="text-xs">{t('ops.dispatch.d.m.stops')}</p><p className="ltr text-lg font-bold">{m.totals.stops}</p></div>
-        <div><p className="text-xs">{t('ops.dispatch.d.m.pcs')}</p><p className="ltr text-lg font-bold">{m.totals.pieces}</p></div>
-        <div><p className="text-xs">{t('ops.dispatch.d.m.cod')}</p><p className="ltr text-lg font-bold">{money(m.totals.codCents)}</p></div>
-        <div><p className="text-xs">{t('ops.dispatch.d.distance')}</p><p className="ltr text-lg font-bold">{m.totals.distanceKm != null ? t('ops.opsa.unit.km', { n: num(m.totals.distanceKm) }) : '—'}</p></div>
+        <div><p className="text-xs">{t('ops.dispatch.d.m.stops')}</p><p className="text-lg font-bold"><span className="ltr">{m.totals.stops}</span></p></div>
+        <div><p className="text-xs">{t('ops.dispatch.d.m.pcs')}</p><p className="text-lg font-bold"><span className="ltr">{m.totals.pieces}</span></p></div>
+        <div><p className="text-xs">{t('ops.dispatch.d.m.cod')}</p><p className="text-lg font-bold"><span className="ltr">{money(m.totals.codCents)}</span></p></div>
+        <div><p className="text-xs">{t('ops.dispatch.d.distance')}</p><p className="text-lg font-bold"><span className="ltr">{m.totals.distanceKm != null ? t('ops.opsa.unit.km', { n: num(m.totals.distanceKm) }) : '—'}</span></p></div>
       </div>
       <table className="w-full border-collapse text-[11px]">
         <thead>
