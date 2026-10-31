@@ -51,7 +51,7 @@ function Profile({ brand }: { brand: MyBrand }) {
   const [uploading, setUploading] = useState(false);
   const init = () => ({ legalName: brand.legalName ?? '', commercialRegNo: brand.commercialRegNo ?? '', taxId: brand.taxId ?? '', industry: brand.industry ?? '', website: brand.website ?? '', email: brand.email ?? '', phone: brand.phone.replace(/^\+20/, '0'), defaultFeesPaidBy: brand.defaultFeesPaidBy });
   const [f, setF] = useState(init);
-  useEffect(() => setF(init()), [brand]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setF(init()); }, [brand]); // eslint-disable-line react-hooks/exhaustive-deps
   const [touched, setTouched] = useState(false);
   const errors = {
     website: f.website && !/^https?:\/\/\S+$/.test(f.website) ? t('brand.settings.errWebsite') : undefined,

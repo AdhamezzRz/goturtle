@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const list = useQuery({ queryKey: ['orders', 'list', query], queryFn: () => api<Paginated<OrderRow>>('/orders', { query }), placeholderData: keepPreviousData, refetchInterval: poll });
   const counts = useQuery({ queryKey: ['orders', 'counts', base], queryFn: () => api<OrderCounts>('/orders/counts', { query: base }), refetchInterval: poll });
 
-  useEffect(() => setSelected(new Set()), [f.tab, f.status, f.q, f.from, f.to, f.payment, f.zone]);
+  useEffect(() => { setSelected(new Set()); }, [f.tab, f.status, f.q, f.from, f.to, f.payment, f.zone]);
 
   const rows = list.data?.data;
   const selectedRows = useMemo(() => (rows ?? []).filter((r) => selected.has(r.id)), [rows, selected]);

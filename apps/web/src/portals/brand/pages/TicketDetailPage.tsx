@@ -27,7 +27,7 @@ export default function TicketDetailPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const count = q.data?.messages.length ?? 0;
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), [count]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [count]);
 
   const reply = useMutation({
     mutationFn: () => api(`/tickets/${id}/messages`, { method: 'POST', body: { body: body.trim(), attachments: files.length ? files.map((f) => f.url) : undefined } }),
