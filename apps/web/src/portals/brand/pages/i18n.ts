@@ -64,6 +64,19 @@ registerDictionary({
   'brand.reason.SECURITY_ACCESS': { en: 'No access (security)', ar: 'تعذر الدخول (أمن)' },
   'brand.reason.OTHER': { en: 'Other', ar: 'سبب آخر' },
 
+  'brand.reason.UPDATED': { en: 'Order edited', ar: 'تم تعديل الطلب' },
+  'brand.reason.RETURN_RECEIVED_AT_HUB': { en: 'Return received at hub', ar: 'المرتجع وصل المخزن' },
+  'brand.reason.RETURN_BACK_AT_HUB': { en: 'Return back at hub', ar: 'المرتجع رجع المخزن' },
+  'brand.reason.REMOVED_FROM_RUNSHEET': { en: 'Removed from the hero’s route', ar: 'اتشال من مسار المندوب' },
+  'brand.reason.PICKUP_RELEASED': { en: 'Released from pickup', ar: 'اتفك من ميعاد الاستلام' },
+  'brand.reason.LOADED': { en: 'Loaded on the hero’s route', ar: 'اتحمّل على مسار المندوب' },
+  'brand.reason.HUB_TRANSFER': { en: 'Transferred between hubs', ar: 'اتنقل بين المخازن' },
+  'brand.reason.HANDOVER_TO_HUB_DECLARED': { en: 'Hero handed it to the hub', ar: 'المندوب سلّمه للمخزن' },
+  'brand.reason.CUSTOMER_ADDRESS_UPDATE': { en: 'Customer updated the address details', ar: 'العميل حدّث تفاصيل العنوان' },
+  'brand.reason.COURIER_REASSIGNED': { en: 'Assigned to another hero', ar: 'اتحوّل لمندوب تاني' },
+  'brand.reason.COURIER_NOT_ACTIVE': { en: 'Hero unavailable — reassigned', ar: 'المندوب مش متاح — اتحوّل' },
+  'brand.reason.CANCELLED_BY_INTEGRATION': { en: 'Cancelled in your store', ar: 'اتلغى من متجرك' },
+
   // ---------------------------------------------------------------- dashboard
   'brand.dash.morning': { en: 'Good morning', ar: 'صباح الخير' },
   'brand.dash.afternoon': { en: 'Good afternoon', ar: 'نهارك سعيد' },

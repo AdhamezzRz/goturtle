@@ -5,7 +5,7 @@ import { CopyButton } from './common';
 /** Dark code block with copy — always LTR. */
 export function CodeBlock({ code, className, lang }: { code: string; className?: string; lang?: string }) {
   return (
-    <div className={cn('group relative overflow-hidden rounded-xl bg-ink-950 ring-1 ring-ink-800', className)} dir="ltr">
+    <div className={cn('group relative min-w-0 max-w-full overflow-hidden rounded-xl bg-ink-950 ring-1 ring-ink-800', className)} dir="ltr">
       {lang && <span className="absolute start-3 top-2 text-[10px] font-semibold uppercase tracking-wider text-ink-500">{lang}</span>}
       <CopyButton value={code} size="xs" className="absolute end-2 top-1.5 text-ink-400 hover:bg-ink-800 hover:text-white" />
       <pre className={cn('max-h-[420px] overflow-auto px-4 pb-4 text-[12.5px] leading-relaxed text-ink-100', lang ? 'pt-7' : 'pt-4')}>

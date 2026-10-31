@@ -77,8 +77,8 @@ function ApiKeys() {
     <div className="space-y-4">
       <Card>
         <SectionTitle icon={<KeyRound />} title={t('brand.dev.keysTitle')} subtitle={t('brand.dev.keysHint')} actions={<Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>{t('brand.dev.newKey')}</Button>} />
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <p className="text-ink-500">{t('brand.dev.baseUrl')}: <code className="ltr rounded bg-ink-100 px-1.5 py-0.5 font-mono text-xs text-ink-800 dark:bg-ink-800 dark:text-ink-100">{window.location.origin}/api/v1</code></p>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <p className="min-w-0 break-all text-ink-500">{t('brand.dev.baseUrl')}: <code className="ltr rounded bg-ink-100 px-1.5 py-0.5 font-mono text-xs text-ink-800 dark:bg-ink-800 dark:text-ink-100">{window.location.origin}/api/v1</code></p>
           <Switch checked={showRevoked} onChange={setShowRevoked} label={t('brand.dev.showRevoked')} />
         </div>
       </Card>
@@ -433,7 +433,7 @@ function Stores() {
       {q.isLoading ? <Skeleton className="h-40 w-full" /> : q.isError ? <Card><ErrorState error={q.error} onRetry={() => q.refetch()} /></Card> : !q.data?.data.length ? (
         <Card><EmptyState icon={<Store className="h-7 w-7" />} title={t('brand.dev.noStores')} description={t('brand.dev.noStoresHint')} action={<Button icon={<Plus className="h-4 w-4" />} onClick={() => setConnect(true)}>{t('brand.dev.connectStore')}</Button>} /></Card>
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*]:min-w-0">
           {q.data.data.map((c) => (
             <Card key={c.id}>
               <div className="flex items-start gap-3">
@@ -590,7 +590,7 @@ function QuickStart() {
   const { t } = useI18n();
   const s = snippets(`${window.location.origin}/api/v1`);
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 [&>*]:min-w-0">
       <Card>
         <SectionTitle icon={<KeyRound />} title={t('brand.dev.qsCreate')} subtitle={t('brand.dev.qsCreateHint')} />
         <LangTabs tabs={s.create} />

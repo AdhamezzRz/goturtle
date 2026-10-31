@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
         <Stat loading={q.isLoading} icon={<TrendingUp />} tone="ink" label={t('brand.an.fees')} value={<Money cents={k?.feesCents} />} hint={k ? <span>{t('brand.an.exVat')} <Money cents={k.feesExVatCents} compact /></span> : undefined} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 [&>*]:min-w-0">
         <ChartCard title={t('brand.an.volume')} subtitle={t('brand.an.volumeSub')} loading={q.isLoading} empty={!daily.some((x) => x.created || x.delivered)} legend={<Legend items={[{ color: SERIES.created, label: t('brand.an.created') }, { color: SERIES.delivered, label: t('brand.an.delivered') }, { color: SERIES.returned, label: t('brand.an.returned') }]} />}>
           <BarChart data={daily} margin={{ top: 8, right: 8, left: -18, bottom: 0 }} barGap={2}>
             <CartesianGrid {...gridProps} />
@@ -138,7 +138,7 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5 [&>*]:min-w-0">
         <div className="xl:col-span-3">
           <h2 className="mb-3 font-semibold text-ink-900 dark:text-white">{t('brand.an.zones')}</h2>
           <DataTable

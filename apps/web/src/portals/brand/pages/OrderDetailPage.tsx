@@ -23,6 +23,8 @@ import './i18n';
 
 const PinMap = lazy(() => import('../components/PinMap'));
 
+const KNOWN_REASONS = new Set<string>([...Object.keys(FailureReason), 'UPDATED', 'RETURN_RECEIVED_AT_HUB', 'RETURN_BACK_AT_HUB', 'REMOVED_FROM_RUNSHEET', 'PICKUP_RELEASED', 'LOADED', 'HUB_TRANSFER', 'HANDOVER_TO_HUB_DECLARED', 'CUSTOMER_ADDRESS_UPDATE', 'COURIER_REASSIGNED', 'COURIER_NOT_ACTIVE', 'CANCELLED_BY_INTEGRATION']);
+
 const EXCEPTION: Partial<Record<OrderStatus, 'danger' | 'neutral' | 'warning'>> = {
   RETURN_PENDING: 'danger', RETURN_OUT: 'danger', RETURNED: 'neutral', CANCELLED: 'neutral', LOST: 'danger', DAMAGED: 'danger',
   FAILED_ATTEMPT: 'warning', RESCHEDULED: 'warning', ON_HOLD: 'warning',
@@ -205,7 +207,7 @@ export default function OrderDetailPage() {
                 tone: EXCEPTION[e.status] === 'danger' ? 'danger' : EXCEPTION[e.status] === 'warning' ? 'warning' : e.status === 'DELIVERED' ? 'success' : 'default',
                 body: (
                   <>
-                    {e.reason && <span className="me-2">{e.reason in FailureReason ? t(`brand.reason.${e.reason}`) : e.reason}</span>}
+                    {e.reason && KNOWN_REASONS.has(e.reason) && <span className="me-2">{t(`brand.reason.${e.reason}`)}</span>}
                     {e.note && <span className="me-2">“{e.note}”</span>}
                     <span className="text-xs text-ink-400">{e.actorName ?? t(`brand.actor.${e.actorType}`)}</span>
                   </>
