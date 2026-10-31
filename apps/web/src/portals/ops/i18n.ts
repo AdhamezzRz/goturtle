@@ -2,6 +2,7 @@ import { registerDictionary } from '@/i18n';
 
 /** Ops portal navigation & shell strings. Page-specific strings live next to their pages (ops/pages/<area>/i18n.ts). */
 registerDictionary({
+  'ops.shell.title': { en: 'Company HQ', ar: 'مركز الشركة' },
   'ops.header.network': { en: 'Greater Cairo network', ar: 'شبكة القاهرة الكبرى' },
   'ops.nav.dashboard': { en: 'Dashboard', ar: 'لوحة التحكم' },
   'ops.nav.live': { en: 'Control tower', ar: 'برج المراقبة' },

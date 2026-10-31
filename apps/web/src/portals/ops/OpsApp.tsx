@@ -103,7 +103,7 @@ export default function OpsApp() {
   ];
 
   return (
-    <AppShell nav={nav} title={t('portal.ops')} profilePath="/ops/profile" notificationsPath="/ops/notifications" headerExtra={<span className="hidden items-center gap-2 text-sm text-ink-500 md:flex"><Map className="h-4 w-4" />{t('ops.header.network')}</span>}>
+    <AppShell nav={nav} title={t('ops.shell.title')} profilePath="/ops/profile" notificationsPath="/ops/notifications" headerExtra={<span className="hidden items-center gap-2 text-sm text-ink-500 md:flex"><Map className="h-4 w-4" />{t('ops.header.network')}</span>}>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route index element={<p.Dashboard />} />
