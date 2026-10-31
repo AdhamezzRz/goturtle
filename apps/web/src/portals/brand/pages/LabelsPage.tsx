@@ -1,5 +1,5 @@
-import { PageHeader } from '@/components/ui';
+import { LabelsPrintView } from '@/components/domain/AwbLabels';
 
 export default function LabelsPage() {
-  return <PageHeader title="Labels" />;
+  return <LabelsPrintView backTo="/brand/orders" />;
 }

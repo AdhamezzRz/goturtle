@@ -15,6 +15,7 @@ const p = {
   Orders: lazy(() => import('./pages/orders/OrdersPage')),
   OrderDetail: lazy(() => import('./pages/orders/OrderDetailPage')),
   NewOrder: lazy(() => import('./pages/orders/NewOrderPage')),
+  Labels: lazy(() => import('./pages/orders/LabelsPage')),
   Pickups: lazy(() => import('./pages/pickups/PickupsPage')),
   Dispatch: lazy(() => import('./pages/dispatch/DispatchPage')),
   RunsheetDetail: lazy(() => import('./pages/dispatch/RunsheetDetailPage')),
@@ -111,6 +112,7 @@ export default function OpsApp() {
           <Route path="analytics" element={<p.Analytics />} />
           <Route path="orders" element={<p.Orders />} />
           <Route path="orders/new" element={<p.NewOrder />} />
+          <Route path="orders/labels" element={<p.Labels />} />
           <Route path="orders/:id" element={<p.OrderDetail />} />
           <Route path="pickups" element={<p.Pickups />} />
           <Route path="dispatch" element={<p.Dispatch />} />

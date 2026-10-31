@@ -17,7 +17,7 @@ One Vite + React 19 SPA, four code-split portals, served in production by the AP
 - **Formatting**: `money(cents)`, `num()`, `pct()`, `dateTime()`, `dateOnly()`, `timeOnly()`, `ago()`, `phone()`, `statusLabel()` from `@/lib/format`. Money from the API is always piasters (`…Cents`); convert user input with `parseEgp()`.
 - **Domain logic**: reuse `@goturtle/shared` (enums, `ORDER_STATUS_TONE`, `canTransition`, `quote`, `levelForXp`, `hasPermission`, `normalizeEgyptPhone`, `isValidTrackingNumber`…). Don't duplicate rules.
 - **Permissions**: `useAuth().can('orders.create')`, `<Can permission="…">`; nav items take `permission`.
-- **UI kit** (`@/components/ui`): Button/IconButton, Field/Input/Textarea/Select/Checkbox/Switch, Card/CardHeader/KpiCard/Badge/StatusBadge/StateBadge/RiskBadge/DescriptionList/Avatar/ProgressBar, PageHeader, DataTable (+selection)/Pagination/Tabs, Modal/Drawer/ConfirmDialog/Menu, Timeline, Barcode/QrCode, Skeleton/Spinner/PageLoader/EmptyState/ErrorState. Map: `import { LiveMap } from '@/components/ui/Map'` (Leaflet; lazy-load the page that uses it). Charts: `recharts`.
+- **UI kit** (`@/components/ui`): DataTable takes `mobileCard={(row) => …}` → rows become cards below `md` (use it on every list). Button/IconButton, Field/Input/Textarea/Select/Checkbox/Switch, Card/CardHeader/KpiCard/Badge/StatusBadge/StateBadge/RiskBadge/DescriptionList/Avatar/ProgressBar, PageHeader, DataTable (+selection)/Pagination/Tabs, Modal/Drawer/ConfirmDialog/Menu, Timeline, Barcode/QrCode, Skeleton/Spinner/PageLoader/EmptyState/ErrorState. Map: `import { LiveMap } from '@/components/ui/Map'` (Leaflet; lazy-load the page that uses it). Charts: `recharts`.
 - **URL state**: list filters live in the URL via `useQueryState()` so views are shareable.
 - **Design**: brand green `turtle-*`, cash/COD accent `sand-*`, neutrals `ink-*`; rounded-2xl cards, generous spacing, display font `font-display` for headings/numbers; dark mode via `dark:` classes. Every list has loading skeletons, empty and error states. Mobile-first for Hero and Customer; Ops/Brand must still work on a phone.
 - **Accessibility**: labels on inputs (`Field`), `aria-label` on icon buttons, focus states preserved, 44px touch targets in the Hero app.
@@ -26,3 +26,12 @@ One Vite + React 19 SPA, four code-split portals, served in production by the AP
 
 ## Dev
 `npm run dev` at repo root → API :4000 + Vite :5173 (proxy `/api`). Seeded logins are listed on the login page in dev (`?demo` in prod).
+
+## Shared domain components
+- `@/components/domain/AwbLabels` — `LabelsPrintView` (route `…/orders/labels?ids=a,b`) and `AwbLabelCard`; link to it from any order list with selected ids.
+
+## Responsive checklist (every page)
+- 360–414 px phones: no horizontal page scroll, tables → `mobileCard`, primary actions reachable (sticky bottom bar in the Hero app), filters collapse into a Drawer/`Modal`.
+- 768 px tablets: two-column forms collapse sensibly; KPI grids 2-up.
+- ≥1280 px desktop: dense data, side panels, maps beside lists.
+- Arabic RTL and English LTR both verified; dark mode verified.

@@ -29,11 +29,16 @@ export interface DataTableProps<T> {
   onSelectChange?: (next: Set<string>) => void;
   footer?: ReactNode;
   dense?: boolean;
+  /**
+   * Phone layout: when given, rows render as stacked cards below the `md`
+   * breakpoint instead of a horizontally scrolling table.
+   */
+  mobileCard?: (row: T) => ReactNode;
 }
 
 const hide = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell', lg: 'hidden lg:table-cell', xl: 'hidden xl:table-cell' };
 
-export function DataTable<T>({ columns, rows, rowKey, loading, error, onRetry, onRowClick, empty, selected, onSelectChange, footer, dense }: DataTableProps<T>) {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, onRetry, onRowClick, empty, selected, onSelectChange, footer, dense, mobileCard }: DataTableProps<T>) {
   const selectable = !!onSelectChange;
   const allIds = rows?.map(rowKey) ?? [];
   const allSelected = selectable && allIds.length > 0 && allIds.every((id) => selected?.has(id));
@@ -48,7 +53,41 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, onRetry, o
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900">
-      <div className="overflow-x-auto">
+      {mobileCard && (
+        <ul className="divide-y divide-ink-100 md:hidden dark:divide-ink-800">
+          {loading &&
+            Array.from({ length: 5 }).map((_, i) => (
+              <li key={`msk${i}`} className="space-y-2 p-4">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-3/4" />
+              </li>
+            ))}
+          {!loading &&
+            rows?.map((row) => {
+              const id = rowKey(row);
+              return (
+                <li
+                  key={id}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={cn('flex items-start gap-3 p-4', onRowClick && 'cursor-pointer active:bg-ink-50 dark:active:bg-ink-800', selected?.has(id) && 'bg-turtle-50/60 dark:bg-turtle-950/30')}
+                >
+                  {selectable && (
+                    <input
+                      type="checkbox"
+                      checked={selected?.has(id) ?? false}
+                      onChange={() => toggle(id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-ink-300 text-turtle-600"
+                      aria-label="select row"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">{mobileCard(row)}</div>
+                </li>
+              );
+            })}
+        </ul>
+      )}
+      <div className={cn('overflow-x-auto', mobileCard && 'hidden md:block')}>
         <table className="min-w-full divide-y divide-ink-100 text-sm dark:divide-ink-800">
           <thead className="bg-ink-50/70 dark:bg-ink-950/40">
             <tr>
