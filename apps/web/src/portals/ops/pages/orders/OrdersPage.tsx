@@ -27,7 +27,7 @@ export const STATUS_GROUPS: Record<string, TOrderStatus[]> = {
 const GROUP_KEYS = ['all', 'new', 'inTransit', 'delivered', 'returns', 'closed'] as const;
 
 const DEFAULTS = {
-  q: '', status: 'all', brand: '', zone: '', hub: '', hero: '', payment: '', risk: '', service: '', from: '', to: '', dateField: 'createdAt', sla: '', sort: 'createdAt', page: '1',
+  q: '', status: 'all', customer: '', brand: '', zone: '', hub: '', hero: '', payment: '', risk: '', service: '', from: '', to: '', dateField: 'createdAt', sla: '', sort: 'createdAt', page: '1',
 };
 
 export default function OrdersPage() {
@@ -45,7 +45,7 @@ export default function OrdersPage() {
   const activeTab = isGroup ? f.status : (Object.entries(STATUS_GROUPS).find(([, l]) => l.includes(f.status as TOrderStatus))?.[0] ?? 'all');
 
   const baseQuery = {
-    q: f.q || undefined, brandId: f.brand || undefined, zoneId: f.zone || undefined, hubId: f.hub || undefined, courierId: f.hero || undefined,
+    q: f.q || undefined, customerId: f.customer || undefined, brandId: f.brand || undefined, zoneId: f.zone || undefined, hubId: f.hub || undefined, courierId: f.hero || undefined,
     paymentMethod: f.payment || undefined, riskLevel: f.risk || undefined, serviceLevel: f.service || undefined,
     from: f.from || undefined, to: f.to || undefined, dateField: f.from || f.to ? f.dateField : undefined, slaBreached: f.sla ? true : undefined,
   };
@@ -54,8 +54,8 @@ export default function OrdersPage() {
   const list = useQuery({ queryKey: ['orders', 'list', listQuery], queryFn: () => api<Paginated<OrderRow>>('/orders', { query: listQuery }), placeholderData: keepPreviousData, enabled: can('orders.read') });
   const counts = useQuery({ queryKey: ['orders', 'counts', baseQuery], queryFn: () => api<OrderCounts>('/orders/counts', { query: baseQuery }), placeholderData: keepPreviousData, enabled: can('orders.read') });
 
-  const activeFilters = ['brand', 'zone', 'hub', 'hero', 'payment', 'risk', 'service', 'from', 'to', 'sla'].filter((k) => f[k as keyof typeof f]).length + (isGroup ? 0 : 1);
-  const clear = () => setF({ brand: '', zone: '', hub: '', hero: '', payment: '', risk: '', service: '', from: '', to: '', sla: '', status: isGroup ? f.status : 'all' });
+  const activeFilters = ['customer', 'brand', 'zone', 'hub', 'hero', 'payment', 'risk', 'service', 'from', 'to', 'sla'].filter((k) => f[k as keyof typeof f]).length + (isGroup ? 0 : 1);
+  const clear = () => setF({ customer: '', brand: '', zone: '', hub: '', hero: '', payment: '', risk: '', service: '', from: '', to: '', sla: '', status: isGroup ? f.status : 'all' });
 
   const rows = list.data?.data;
   const selectedRows = useMemo(() => (rows ?? []).filter((r) => selected.has(r.id)), [rows, selected]);
