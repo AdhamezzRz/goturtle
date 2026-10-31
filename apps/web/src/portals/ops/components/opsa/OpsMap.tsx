@@ -92,9 +92,11 @@ function Fit({ points, fitKey, padding }: { points: Array<[number, number]>; fit
 
 function FlyTo({ target }: { target?: [number, number] | null }) {
   const map = useMap();
+  const lat = target?.[0];
+  const lng = target?.[1];
   useEffect(() => {
-    if (target) map.flyTo(target, Math.max(map.getZoom(), 14), { duration: 0.6 });
-  }, [target, map]);
+    if (lat != null && lng != null) map.flyTo([lat, lng], Math.max(map.getZoom(), 14), { duration: 0.6 });
+  }, [lat, lng, map]);
   return null;
 }
 
