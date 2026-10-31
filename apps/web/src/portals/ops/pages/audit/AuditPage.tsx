@@ -68,7 +68,7 @@ function Inner() {
     <div>
       <PageHeader title={t('ops.audit.title')} subtitle={t('ops.audit.subtitle')} />
       <FilterBar
-        search={<Input type="search" dir="ltr" leading={<Search className="h-4 w-4" />} value={action} onChange={(e) => setAction(e.target.value)} placeholder={t('ops.audit.search')} aria-label={t('ops.audit.action')} title={t('ops.audit.actionHint')} />}
+        search={<Input type="search" leading={<Search className="h-4 w-4" />} value={action} onChange={(e) => setAction(e.target.value)} placeholder={t('ops.audit.search')} aria-label={t('ops.audit.action')} title={t('ops.audit.actionHint')} />}
         activeCount={[f.entity, f.entityId, f.actorId, f.from, f.to].filter(Boolean).length}
         onClear={() => setF({ entity: '', entityId: '', actorId: '', from: '', to: '' })}
       >

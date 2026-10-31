@@ -272,6 +272,7 @@ export function ReasonDialog({ open, onClose, onConfirm, title, description, con
 export function MoneyInput({ id, value, onChange, invalid, placeholder, disabled }: { id?: string; value: string; onChange: (v: string) => void; invalid?: boolean; placeholder?: string; disabled?: boolean }) {
   const { t } = useI18n();
   return (
+    <div dir="ltr">
     <Input
       id={id}
       inputMode="decimal"
@@ -283,6 +284,7 @@ export function MoneyInput({ id, value, onChange, invalid, placeholder, disabled
       invalid={invalid}
       trailing={<span className="text-xs font-semibold">{t('ops.opsb.egpSuffix')}</span>}
     />
+    </div>
   );
 }
 
