@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { config } from './config';
-import { existsSync } from 'node:fs';
+import { assertValidConfig, config } from './config';
+import { existsSync, statSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { Logger, ValidationPipe, VersioningType, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -95,7 +95,12 @@ function serveWeb(app: NestExpressApplication) {
   log.log(`Serving portals from ${dist}`);
 }
 
-async function bootstrap() {
+/**
+ * Starts the API + portals. Throws on any startup problem (bad config, database
+ * unreachable, migration failure) so the caller can report it — see server.js.
+ */
+export async function start(): Promise<NestExpressApplication> {
+  assertValidConfig();
   if (config.dbAutoMigrate) {
     log.log('Applying database migrations…');
     await runMigrations(config.databaseUrl);
@@ -104,12 +109,24 @@ async function bootstrap() {
   configureApp(app);
   setupSwagger(app);
   serveWeb(app);
-  await app.listen(config.port, '0.0.0.0');
-  log.log(`🐢 GoTurtle is running on port ${config.port} (${config.nodeEnv}) — API docs at /api/docs`);
+  if (typeof config.port === 'string' && existsSync(config.port) && statSync(config.port).isSocket()) {
+    unlinkSync(config.port); // stale socket left by a previous process
+  }
+  try {
+    // No host argument: listen on all interfaces (IPv4 + IPv6) or on a socket path.
+    await app.listen(config.port);
+  } catch (err) {
+    await app.close().catch(() => undefined);
+    throw err;
+  }
+  log.log(`🐢 GoTurtle is running on ${typeof config.port === 'number' ? `port ${config.port}` : config.port} (${config.nodeEnv}) — API docs at /api/docs`);
+  return app;
 }
 
-if (require.main === module || process.env.GOTURTLE_AUTOSTART === '1' || require.main?.filename.endsWith('server.js')) {
-  bootstrap().catch((err) => {
+// `node apps/api/dist/main.js` (local dev). In production the entry point is the
+// repo-root server.js, which calls start() and handles failures.
+if (require.main === module) {
+  start().catch((err) => {
     log.error('Failed to start', err instanceof Error ? err.stack : String(err));
     process.exit(1);
   });

@@ -13,6 +13,12 @@ function str(name: string, fallback?: string): string {
   }
   return v;
 }
+/** PORT can be a number or (behind some process managers) a socket / named pipe path. */
+function port(): number | string {
+  const v = process.env.PORT;
+  if (v === undefined || v === '') return 3000;
+  return /^\d+$/.test(v) ? Number(v) : v;
+}
 function num(name: string, fallback: number): number {
   const v = process.env[name];
   if (v === undefined || v === '') return fallback;
@@ -35,7 +41,7 @@ export const config = {
   nodeEnv,
   isProd,
   isTest: nodeEnv === 'test',
-  port: num('PORT', 3000),
+  port: port(),
   appUrl: str('APP_URL', 'http://localhost:5173').replace(/\/$/, ''),
   databaseUrl: str('DATABASE_URL', devDefault('mysql://goturtle:goturtle@127.0.0.1:3306/goturtle')),
   dbAutoMigrate: bool('DB_AUTO_MIGRATE', true),
@@ -71,16 +77,46 @@ export const config = {
   exposeOtp: !isProd && bool('EXPOSE_OTP', true),
 };
 
+/** Catch the most common Hostinger mistake early: special characters in the DB password not URL-encoded. */
+function checkDatabaseUrl(raw: string) {
+  if (!raw) return;
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    problems.push('DATABASE_URL is not a valid URL — expected mysql://USER:PASSWORD@HOST:3306/DATABASE');
+    return;
+  }
+  if (u.protocol !== 'mysql:') problems.push('DATABASE_URL must start with mysql://');
+  if (!u.hostname) problems.push('DATABASE_URL is missing the host (usually localhost on Hostinger)');
+  if (!u.pathname || u.pathname === '/') problems.push('DATABASE_URL is missing the database name after the last "/"');
+  if (u.hash || (raw.match(/@/g)?.length ?? 0) > 1 || u.search.includes('@')) {
+    problems.push('DATABASE_URL password contains special characters that must be URL-encoded (@ → %40, # → %23, / → %2F, ? → %3F, % → %25)');
+  }
+}
+checkDatabaseUrl(config.databaseUrl);
+
 if (isProd) {
   for (const [k, v] of Object.entries({ JWT_ACCESS_SECRET: config.jwt.accessSecret, JWT_REFRESH_SECRET: config.jwt.refreshSecret })) {
     if (v.length < 32 || v.startsWith('change-me')) problems.push(`${k} must be a random string of at least 32 characters`);
   }
 }
 
-if (problems.length) {
-  // eslint-disable-next-line no-console
-  console.error(`\n✖ Invalid configuration:\n  - ${problems.join('\n  - ')}\n  See apps/api/.env.example\n`);
-  if (!config.isTest) process.exit(1);
+/**
+ * Configuration problems found at load time. The app refuses to start while this
+ * is non-empty (main.ts throws a ConfigError and server.js shows a diagnostic page).
+ */
+export const configProblems: readonly string[] = problems;
+
+export class ConfigError extends Error {
+  readonly code = 'CONFIG_INVALID';
+  constructor(public readonly problems: readonly string[]) {
+    super(`Invalid configuration:\n  - ${problems.join('\n  - ')}\n  See apps/api/.env.example`);
+  }
+}
+
+export function assertValidConfig() {
+  if (problems.length) throw new ConfigError(problems);
 }
 
 export type AppConfig = typeof config;

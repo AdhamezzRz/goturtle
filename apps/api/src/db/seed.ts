@@ -6,7 +6,7 @@ import { runMigrations } from './migrate';
 import * as s from './schema';
 import { CITIES, DEFAULT_RATES, GOVERNORATES, HUBS, ZONES } from './cairo';
 import { hashPassword } from '../modules/auth/auth.service';
-import { config } from '../config';
+import { assertValidConfig, config } from '../config';
 
 /**
  * Seeds the Greater Cairo network, rate cards, staff, demo brands and heroes.
@@ -165,6 +165,7 @@ export async function seedBase(db: Db) {
 }
 
 async function main() {
+  assertValidConfig();
   const baseOnly = process.argv.includes('--base');
   await runMigrations(config.databaseUrl);
   const { db, pool } = createDb(config.databaseUrl, { connectionLimit: 2 });

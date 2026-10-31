@@ -70,9 +70,19 @@ The production database starts empty except for the admin. Load the Greater Cair
 - Heroes install the app from `https://your-domain/hero` (Add to Home Screen)
 
 ## Troubleshooting
-| Symptom | Fix |
+GoTurtle never crash-loops on a bad setup. If startup fails, the site shows a **"GoTurtle · <REASON>"** page and `/api/v1/system/health` returns `{"status":"error","error":"<REASON>",...}` that names the problem (no secrets are shown). The full error is in hPanel → your app → **Runtime logs**.
+
+| Reason on the page | Fix |
 |---|---|
-| App crashes at start with "Invalid configuration" | a required env var is missing/too short — the log lists which |
+| `CONFIG_INVALID` | the page lists each missing/invalid environment variable — add them, then **redeploy** (a restart does not reload env vars) |
+| `DB_ACCESS_DENIED` | wrong DB user/password in `DATABASE_URL`, or the user is not assigned to the database |
+| `DB_UNKNOWN_DATABASE` | database name in `DATABASE_URL` is wrong — copy it exactly from hPanel → Databases |
+| `DB_UNREACHABLE` | wrong host/port — use the host shown in hPanel (usually `localhost`) and `3306` |
+| `NODE_VERSION` | select Node.js 20 or 22 for the app |
+| `BUILD_MISSING` | build command must be `npm run build`, root directory the repo root — check the build log |
+
+| Plain **503** with no GoTurtle page | the process is not running at all: check the build log, that the entry file is `server.js`, then Restart / Redeploy. Hostinger also returns 503 when the plan hits its process or memory limit — stop unused Node apps (each domain and `www` subdomain runs its own process) |
+| App crashes at start with "Invalid configuration" | a required env var is missing/too short — the page and log list which |
 | `ER_ACCESS_DENIED_ERROR` | wrong DB user/password or the user isn't assigned to the database |
 | Build fails with `tsc: not found` | make sure the install step runs at the repo root (workspaces) |
 | Live map not updating | it polls every 10 s; check the browser can reach `/api/v1/dispatch/live` |

@@ -1,0 +1,1 @@
+NODE_ENV=production DATABASE_URL=mysql://goturtle:p@ss127.0.0.1:3306/goturtle_prodcheck JWT_ACCESS_SECRET=18c643f528680e0d94b7a4d9fa1dcbcb4a5c450d278eaddc JWT_REFRESH_SECRET=172cd7ca0c9ec1262334ab739d1d9a418972a001deaae881 ENCRYPTION_KEY=x CRON_SECRET=y APP_URL=https://x.example
