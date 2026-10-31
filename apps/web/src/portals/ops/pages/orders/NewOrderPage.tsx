@@ -190,15 +190,15 @@ export default function NewOrderPage() {
           </Step>
 
           <Step n={3} title={t('ops.orders.create.s.address')}>
-            <div className="grid gap-3 sm:grid-cols-4">
-              <Field label={t('ops.orders.create.line')} required error={err('line')} className="sm:col-span-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Field label={t('ops.orders.create.line')} required error={err('line')} className="col-span-2 sm:col-span-4">
                 {(id) => <Input id={id} value={v.line} onChange={(e) => set('line', e.target.value)} placeholder={t('ops.orders.create.linePh')} leading={<MapPin className="h-4 w-4" />} invalid={!!err('line')} />}
               </Field>
               <Field label={t('ops.orders.create.building')}>{(id) => <Input id={id} value={v.building} onChange={(e) => set('building', e.target.value)} />}</Field>
               <Field label={t('ops.orders.create.floor')}>{(id) => <Input id={id} value={v.floor} onChange={(e) => set('floor', e.target.value)} />}</Field>
               <Field label={t('ops.orders.create.apartment')}>{(id) => <Input id={id} value={v.apartment} onChange={(e) => set('apartment', e.target.value)} />}</Field>
-              <Field label={t('ops.orders.create.landmark')}>{(id) => <Input id={id} value={v.landmark} onChange={(e) => set('landmark', e.target.value)} />}</Field>
-              <div className="sm:col-span-4">
+              <Field label={t('ops.orders.create.landmark')} className="col-span-2 sm:col-span-1">{(id) => <Input id={id} value={v.landmark} onChange={(e) => set('landmark', e.target.value)} />}</Field>
+              <div className="col-span-2 sm:col-span-4">
                 <Field label={t('ops.orders.create.zone')} required error={err('zoneId')}>
                   {(id) => (
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -215,8 +215,8 @@ export default function NewOrderPage() {
           </Step>
 
           <Step n={4} title={t('ops.orders.create.s.package')}>
-            <div className="grid gap-3 sm:grid-cols-4">
-              <Field label={t('ops.orders.create.description')} className="sm:col-span-2">{(id) => <Input id={id} value={v.description} onChange={(e) => set('description', e.target.value)} maxLength={500} />}</Field>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Field label={t('ops.orders.create.description')} className="col-span-2">{(id) => <Input id={id} value={v.description} onChange={(e) => set('description', e.target.value)} maxLength={500} />}</Field>
               <Field label={t('ops.orders.create.items')}>{(id) => <Input id={id} type="number" min={1} max={999} value={v.items} onChange={(e) => set('items', e.target.value)} className="ltr" />}</Field>
               <Field label={t('ops.orders.create.weight')}>{(id) => <Input id={id} type="number" min={0.1} step={0.1} value={v.weight} onChange={(e) => set('weight', e.target.value)} className="ltr" />}</Field>
               <Field label={t('ops.orders.create.service')}>
@@ -227,7 +227,7 @@ export default function NewOrderPage() {
               </Field>
               <Field label={t('ops.orders.create.scheduled')} hint={t('ops.opsa.optional')}>{(id) => <Input id={id} type="date" min={cairoToday()} value={v.scheduledDate} onChange={(e) => set('scheduledDate', e.target.value)} className="ltr" />}</Field>
               <Field label={t('ops.orders.create.declared')} hint={t('ops.opsa.optional')}>{(id) => <Input id={id} inputMode="decimal" value={v.declared} onChange={(e) => set('declared', e.target.value)} className="ltr" />}</Field>
-              <div className="flex flex-wrap gap-x-6 gap-y-3 sm:col-span-4">
+              <div className="col-span-2 flex flex-wrap gap-x-6 gap-y-3 sm:col-span-4">
                 <Switch checked={v.fragile} onChange={(x) => set('fragile', x)} label={t('ops.orders.create.fragile')} />
                 <Switch checked={v.allowOpening} onChange={(x) => set('allowOpening', x)} label={t('ops.orders.create.allowOpen')} />
                 <Switch checked={v.otp} onChange={(x) => set('otp', x)} label={t('ops.orders.create.otp')} />

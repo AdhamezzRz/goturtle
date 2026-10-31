@@ -168,9 +168,12 @@ function ReasonsDonut({ data }: { data: OpsOverview['failureReasons'] }) {
 
 function Heatmap({ values }: { values: number[][] }) {
   const { t, locale } = useI18n();
+  const th = useChartTheme();
+  // Dark surfaces read magnitude as brightness: walk the ramp the other way (never darker than step 600).
+  const ramp = th.dark ? ['#13161e', '#184f95', '#256abf', '#3987e5', '#6da7ec', '#9ec5f4', '#cde2fb'] : SEQ_BLUE;
   const max = Math.max(1, ...values.flat());
   const days = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-GB', { weekday: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2024, 0, 7 + i))));
-  const color = (v: number) => SEQ_BLUE[Math.max(1, Math.ceil((v / max) * (SEQ_BLUE.length - 1)))];
+  const color = (v: number) => ramp[Math.max(1, Math.ceil((v / max) * (ramp.length - 1)))];
   if (!values.flat().some(Boolean)) return <EmptyState title={t('ops.analytics.empty')} />;
   return (
     <div>
@@ -203,7 +206,7 @@ function Heatmap({ values }: { values: number[][] }) {
       <div className="mt-2 flex items-center justify-end gap-1.5 text-[11px] text-ink-500">
         {t('ops.analytics.heatLess')}
         <span className="h-3 w-3 rounded-[3px] bg-ink-100 dark:bg-ink-800" />
-        {SEQ_BLUE.slice(1).map((c) => <span key={c} className="h-3 w-3 rounded-[3px]" style={{ background: c }} />)}
+        {ramp.slice(1).map((c) => <span key={c} className="h-3 w-3 rounded-[3px]" style={{ background: c }} />)}
         {t('ops.analytics.heatMore')}
       </div>
     </div>

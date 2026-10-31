@@ -358,7 +358,7 @@ export function NoAccess() {
 
 export function SectionCard({ title, subtitle, actions, children, className, padded = true, bodyClassName }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; padded?: boolean; bodyClassName?: string }) {
   return (
-    <section className={cn('rounded-2xl border border-ink-100 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900', className)}>
+    <section className={cn('min-w-0 rounded-2xl border border-ink-100 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900', className)}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 px-4 py-3 dark:border-ink-800 sm:px-5">
         <div className="min-w-0">
           <h2 className="truncate text-[15px] font-semibold text-ink-900 dark:text-ink-50">{title}</h2>
