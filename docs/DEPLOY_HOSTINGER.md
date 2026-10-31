@@ -56,12 +56,12 @@ curl -fsS -X POST "https://goturtle.example.com/api/v1/system/cron?key=YOUR_CRON
 ```
 (Alternatively use an external service such as cron-job.org with the same URL.)
 
-## 5. Seed the Cairo network (first time only)
-The production database starts empty except for the admin. Load the Greater Cairo zones, hubs and default rate cards once, either:
-- via SSH (Cloud plans): `cd ~/domains/<your-domain>/public_html && npm run db:seed -- --base`, **or**
-- create zones/hubs/pricing from the Ops portal (Network & Pricing pages).
+## 5. Load the Cairo network (first time only, no SSH needed)
+Sign in as the super admin → **Ops → System → First-run setup**:
+- **Load Greater Cairo network** — 25 zones, 4 hubs, Standard & Growth rate cards. Production-safe and idempotent.
+- **Load demo data** (optional, only on an empty system) — demo staff, 3 brands, 10 heroes and ~3 weeks of orders, all with password `Turtle@2026`. Great for exploring; delete/suspend those accounts before going live.
 
-`--base` loads the network + demo staff/brands/heroes with password `Turtle@2026` — delete or change those accounts before go-live, or create your own from the Ops portal.
+Then create your real brands (Ops → Brands → Onboard) and heroes (Ops → Heroes → Onboard).
 
 ## 6. Verify
 - `https://your-domain/api/v1/system/health` → `{"status":"ok","database":"ok"}`
