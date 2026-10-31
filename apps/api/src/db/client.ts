@@ -15,9 +15,26 @@ export type Db = MySql2Database<typeof schema>;
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 export type DbOrTx = Db | Tx;
 
+/**
+ * Node 17+ resolves "localhost" to IPv6 ::1 first, and Hostinger's MySQL users are
+ * only granted for 127.0.0.1 → "Access denied for user …@'::1'". Always use IPv4 loopback.
+ */
+export function normalizeDatabaseUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'localhost') {
+      u.hostname = '127.0.0.1';
+      return u.toString();
+    }
+  } catch {
+    /* invalid URLs are reported by config validation */
+  }
+  return url;
+}
+
 export function createDb(url: string, opts: { connectionLimit?: number } = {}): { db: Db; pool: Pool } {
   const pool = createPool({
-    uri: url,
+    uri: normalizeDatabaseUrl(url),
     // Hostinger shares process limits across sites: keep the pool small.
     connectionLimit: opts.connectionLimit ?? 8,
     waitForConnections: true,

@@ -17,9 +17,9 @@ const HINTS = {
   BUILD_MISSING: 'The build output is missing. Make sure the Build command is "npm run build" and the Root directory is the repository root, then redeploy and check the build log.',
   CONFIG_INVALID: 'Add the missing environment variables in hPanel → your app → Environment variables (see apps/api/.env.example), then redeploy.',
   DB_URL_INVALID: 'DATABASE_URL is not a valid URL. Format: mysql://USER:PASSWORD@HOST:3306/DATABASE — URL-encode special characters in the password (e.g. @ → %40, # → %23).',
-  DB_ACCESS_DENIED: 'The database rejected the user/password. Check DATABASE_URL and that the user is assigned to the database in hPanel → Databases.',
+  DB_ACCESS_DENIED: 'The database rejected the user/password. Check the user name and password in DATABASE_URL (special characters in the password must be URL-encoded: @ → %40, $ → %24, # → %23), use host 127.0.0.1 on Hostinger, and make sure the user is assigned to the database in hPanel → Databases. If you just changed the password in hPanel, wait a minute and redeploy.',
   DB_UNKNOWN_DATABASE: 'The database name in DATABASE_URL does not exist. Copy the exact name (e.g. u123456_goturtle) from hPanel → Databases.',
-  DB_UNREACHABLE: 'Cannot reach the database server. Use the host shown in hPanel → Databases (usually "localhost") and port 3306.',
+  DB_UNREACHABLE: 'Cannot reach the database server. Use the host shown in hPanel → Databases (127.0.0.1 on Hostinger) and port 3306.',
   PORT_IN_USE: 'Another process already uses this port. Restart the app from hPanel (do not run PM2 or cluster mode yourself).',
   STARTUP_FAILED: 'The app failed during startup. Open hPanel → your app → Runtime logs for the full error.',
 };
@@ -47,7 +47,12 @@ function classify(err) {
   const e = rootCause(err) || {};
   const code = e.code || '';
   const msg = String(e.message || '');
-  if (code === 'ER_ACCESS_DENIED_ERROR' || code === 'ER_DBACCESS_DENIED_ERROR' || code === 'ER_ACCESS_DENIED_NO_PASSWORD_ERROR') return { kind: 'DB_ACCESS_DENIED', details: [code] };
+  if (code === 'ER_ACCESS_DENIED_ERROR' || code === 'ER_DBACCESS_DENIED_ERROR' || code === 'ER_ACCESS_DENIED_NO_PASSWORD_ERROR') {
+    // MySQL's message names the user and client host (never the password), e.g.
+    // "Access denied for user 'u1_app'@'127.0.0.1' (using password: YES)" — the key clue.
+    const sqlMessage = String(e.sqlMessage || e.message || '').slice(0, 200);
+    return { kind: 'DB_ACCESS_DENIED', details: [code, sqlMessage].filter(Boolean) };
+  }
   if (code === 'ER_BAD_DB_ERROR') return { kind: 'DB_UNKNOWN_DATABASE', details: [code] };
   if (['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', 'EHOSTUNREACH', 'PROTOCOL_CONNECTION_LOST'].includes(code)) return { kind: 'DB_UNREACHABLE', details: [code] };
   if (code === 'ERR_INVALID_URL' || /Invalid URL/i.test(msg)) return { kind: 'DB_URL_INVALID', details: [] };

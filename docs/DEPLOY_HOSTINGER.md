@@ -5,11 +5,11 @@ GoTurtle ships as **one Node.js app**: the NestJS API serves the REST API under 
 > Requires a Hostinger **Business** or **Cloud** plan (Node.js apps are not available on lower plans).
 
 ## 1. Create the database
-hPanel → **Databases → MySQL Databases** → create a database + user (note the name, user, password; host is usually `localhost`).
+hPanel → **Databases → MySQL Databases** → create a database + user (note the name, user, password; host must be `127.0.0.1` (not `localhost` — Node resolves it to IPv6 `::1`, which Hostinger MySQL rejects; GoTurtle converts it automatically)).
 
 The connection string has this shape (URL-encode special characters in the password):
 ```
-mysql://u123456_goturtle:YOUR_PASSWORD@localhost:3306/u123456_goturtle
+mysql://u123456_goturtle:YOUR_PASSWORD@127.0.0.1:3306/u123456_goturtle
 ```
 
 ## 2. Create the Node.js app
@@ -33,7 +33,7 @@ hPanel → your app → **Environment variables** (you can import `apps/api/.env
 |---|---|---|
 | `NODE_ENV` | `production` | |
 | `APP_URL` | `https://goturtle.example.com` | used in SMS tracking links & webhooks |
-| `DATABASE_URL` | `mysql://user:pass@localhost:3306/db` | |
+| `DATABASE_URL` | `mysql://user:pass@127.0.0.1:3306/db` | |
 | `JWT_ACCESS_SECRET` | 48+ random chars | `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
 | `JWT_REFRESH_SECRET` | 48+ random chars | different from the access secret |
 | `ENCRYPTION_KEY` | 32+ random chars | encrypts integration credentials — never change after go-live |
@@ -77,7 +77,7 @@ GoTurtle never crash-loops on a bad setup. If startup fails, the site shows a **
 | `CONFIG_INVALID` | the page lists each missing/invalid environment variable — add them, then **redeploy** (a restart does not reload env vars) |
 | `DB_ACCESS_DENIED` | wrong DB user/password in `DATABASE_URL`, or the user is not assigned to the database |
 | `DB_UNKNOWN_DATABASE` | database name in `DATABASE_URL` is wrong — copy it exactly from hPanel → Databases |
-| `DB_UNREACHABLE` | wrong host/port — use the host shown in hPanel (usually `localhost`) and `3306` |
+| `DB_UNREACHABLE` | wrong host/port — use host `127.0.0.1` and port `3306` |
 | `NODE_VERSION` | select Node.js 20 or 22 for the app |
 | `BUILD_MISSING` | build command must be `npm run build`, root directory the repo root — check the build log |
 
