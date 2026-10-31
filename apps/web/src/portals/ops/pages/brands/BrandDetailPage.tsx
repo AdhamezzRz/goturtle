@@ -223,6 +223,7 @@ function Commercial({ b }: { b: BrandDetail }) {
   const plans = usePlans();
   const staff = useStaffOptions();
   const ro = !can('brands.manage');
+  const managers = [...(staff.data ?? []), ...(b.accountManager && !staff.data?.some((s) => s.id === b.accountManager!.id) ? [{ id: b.accountManager.id, name: b.accountManager.name }] : [])];
   const { values: f, set, errors, setErrors, reset } = useForm(commercialOf(b));
   useEffect(() => {
     reset(commercialOf(b));
@@ -238,7 +239,7 @@ function Commercial({ b }: { b: BrandDetail }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('ops.brands.f.plan')} error={errors.pricingPlanId}>{(id) => <Select id={id} value={f.pricingPlanId} disabled={ro} onChange={(e) => set('pricingPlanId', e.target.value)} placeholder={t('ops.brands.o.defaultPlan')} options={(plans.data ?? []).map((p) => ({ value: p.id, label: p.name }))} />}</Field>
         <Field label={t('ops.brands.f.cycle')}>{(id) => <Select id={id} value={f.settlementCycle} disabled={ro} onChange={(e) => set('settlementCycle', e.target.value)} options={enumOptions('SettlementCycle', Object.values(SettlementCycle))} />}</Field>
-        <Field label={t('ops.brands.col.manager')} error={errors.accountManagerId}>{(id) => <Select id={id} value={f.accountManagerId} disabled={ro} onChange={(e) => set('accountManagerId', e.target.value)} placeholder={t('ops.brands.d.noManager')} options={(staff.data ?? []).map((s) => ({ value: s.id, label: s.name }))} />}</Field>
+        <Field label={t('ops.brands.col.manager')} error={errors.accountManagerId}>{(id) => <Select id={id} value={f.accountManagerId} disabled={ro} onChange={(e) => set('accountManagerId', e.target.value)} placeholder={t('ops.brands.d.noManager')} options={managers.map((s) => ({ value: s.id, label: s.name }))} />}</Field>
         <Field label={t('ops.brands.d.payoutMethod')}>{(id) => <Select id={id} value={f.payoutMethod} disabled={ro} onChange={(e) => set('payoutMethod', e.target.value)} options={enumOptions('PayoutMethod', Object.values(PayoutMethod))} />}</Field>
         <PayoutDetailFields values={f} set={(k, val) => set(k, val)} errors={errors} disabled={ro} />
       </div>

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { isValidEgyptPhone } from '@goturtle/shared';
 import { api, ApiError, type Paginated } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { errorMessage, translate, useI18n } from '@/i18n';
 import './i18n';
 
@@ -23,29 +24,32 @@ export function useZones() {
 
 /** All heroes (bounded list for pickers). */
 export function useCourierOptions(enabled = true) {
+  const { can } = useAuth();
   return useQuery({
     queryKey: ['opsb', 'courier-options'],
     queryFn: () => api<Paginated<CourierLite>>('/couriers', { query: { pageSize: 100, sort: 'code' } }).then((r) => r.data),
     staleTime: 60_000,
-    enabled,
+    enabled: enabled && can('couriers.read'),
   });
 }
 
 export function useBrandOptions(enabled = true) {
+  const { can } = useAuth();
   return useQuery({
     queryKey: ['opsb', 'brand-options'],
     queryFn: () => api<Paginated<BrandLite>>('/brands', { query: { pageSize: 100 } }).then((r) => r.data),
     staleTime: 60_000,
-    enabled,
+    enabled: enabled && can('brands.read'),
   });
 }
 
 export function useStaffOptions(enabled = true) {
+  const { can } = useAuth();
   return useQuery({
     queryKey: ['opsb', 'staff-options'],
     queryFn: () => api<Paginated<StaffLite>>('/users', { query: { pageSize: 100, kind: 'staff', status: 'ACTIVE' } }).then((r) => r.data),
     staleTime: 60_000,
-    enabled,
+    enabled: enabled && can('users.read'),
   });
 }
 
