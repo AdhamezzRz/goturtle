@@ -293,6 +293,9 @@ export interface Profile {
   level: LevelInfo;
   streakDays: number;
   walletPhone: string | null;
+  lastLat: number | null;
+  lastLng: number | null;
+  lastSeenAt: string | null;
   documents: { total: number; pending: number; approved: number; rejected: number; expiringSoon: number; missingRequired: string[] };
   kpis: Record<'today' | 'last7d' | 'last30d', { deliveries: number; failedAttempts: number; successRate: number; avgDeliveryMinutes: number; codCollectedCents: number; earningsCents: number }>;
   joinedAt: string;
