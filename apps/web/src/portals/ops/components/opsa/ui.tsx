@@ -51,7 +51,7 @@ export function Ltr({ children, className }: { children: ReactNode; className?: 
 }
 
 export function Mono({ children, className }: { children: ReactNode; className?: string }) {
-  return <span className={cn('ltr font-mono text-[13px] tracking-tight', className)}>{children}</span>;
+  return <span className={cn('ltr whitespace-nowrap font-mono text-[13px] tracking-tight', className)}>{children}</span>;
 }
 
 export function CopyButton({ value, className, label }: { value: string; className?: string; label?: string }) {
