@@ -28,12 +28,12 @@ describe('Orders (e2e)', () => {
       expect(o.status).toBe('CREATED');
       expect(o.source).toBe('PORTAL');
       expect(o.zone.code).toBe('CAI-NASR');
-      // Standard plan, tier A: 55 EGP + 1 extra kg (5 EGP) + COD 1% (12.50) → 72.50 + 14% VAT
+      // Standard plan, tier A: 55 EGP + 2 started extra kg (10 EGP) + COD 1% (12.50) → 77.50 + 14% VAT
       expect(o.shippingFeeCents).toBe(5500);
-      expect(o.extraFeesCents).toBe(500);
+      expect(o.extraFeesCents).toBe(1000);
       expect(o.codFeeCents).toBe(1250);
-      expect(o.vatCents).toBe(1015);
-      expect(o.totalFeesCents).toBe(8265);
+      expect(o.vatCents).toBe(1085);
+      expect(o.totalFeesCents).toBe(8835);
       expect(o.totalFeesCents).toBe(quote.body.quote.totalFeesCents);
       expect(o.collectCents).toBe(quote.body.quote.collectFromRecipientCents);
       expect(o.collectCents).toBe(125_000);
@@ -105,7 +105,7 @@ describe('Orders (e2e)', () => {
     it('upserts the customer by phone and scores risk', async () => {
       const brand = await t.as('brandNile');
       const phone = randomPhone('011');
-      const first = await brand.post(`${API}/orders`).send(orderBody({ recipient: { name: 'Omar', phone }, codAmountCents: 600_000, address: { line: 'Nasr' } }));
+      const first = await brand.post(`${API}/orders`).send(orderBody({ recipient: { name: 'Omar', phone }, codAmountCents: 600_000, address: { line: 'Nasr City' } }));
       expect(first.status).toBe(201);
       expect(first.body.riskLevel).not.toBe('LOW');
       await brand.post(`${API}/orders`).send(orderBody({ recipient: { name: 'Omar', phone } }));
