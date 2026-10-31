@@ -64,6 +64,18 @@ export function clearHeroCache() {
   }
 }
 
+// Drop expired screens once per app load (stop details accumulate during the day).
+try {
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (!k?.startsWith(PREFIX)) continue;
+    const at = (JSON.parse(localStorage.getItem(k) ?? '{}') as { at?: number }).at ?? 0;
+    if (Date.now() - at > MAX_AGE_MS) localStorage.removeItem(k);
+  }
+} catch {
+  /* storage unavailable */
+}
+
 interface HeroQueryOptions {
   query?: RequestOptions['query'];
   /** Poll interval in ms (paused while the tab is hidden). */

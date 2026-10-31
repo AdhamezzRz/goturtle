@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { dateTime, num, timeOnly } from '@/lib/format';
+import { dateTime, money, num, timeOnly } from '@/lib/format';
 import { errorMessage, useI18n } from '@/i18n';
 import { Avatar, Button } from '@/components/ui';
 import { Money, Sheet } from './components/kit';
@@ -84,7 +84,8 @@ export function HeroHeader() {
               {cashTone === 'red' ? t('hero.header.cashOver') : t('hero.header.cash')}
             </span>
             <span className="block truncate text-sm font-extrabold">
-              <Money cents={cash.onHandCents} />
+              {/* Whole pounds, compact above 10k so it never truncates on a 360px phone. */}
+              <span className="ltr tabular inline-block">{money(Math.round(cash.onHandCents / 100) * 100, { compact: cash.onHandCents >= 1_000_000 })}</span>
               {cash.limitCents > 0 && <span className="text-[11px] font-semibold opacity-75"> / {num(Math.round(cash.limitCents / 100))}</span>}
             </span>
           </span>
