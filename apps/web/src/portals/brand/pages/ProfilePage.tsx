@@ -31,7 +31,8 @@ export default function ProfilePage() {
       setName(me.name);
       setLang(me.locale);
     }
-  }, [me]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.id]);
 
   const save = useMutation({
     mutationFn: (body: { name?: string; locale?: 'ar' | 'en'; avatarUrl?: string }) => api('/auth/me', { method: 'PATCH', body }),

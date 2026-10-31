@@ -51,7 +51,7 @@ function Profile({ brand }: { brand: MyBrand }) {
   const [uploading, setUploading] = useState(false);
   const init = () => ({ legalName: brand.legalName ?? '', commercialRegNo: brand.commercialRegNo ?? '', taxId: brand.taxId ?? '', industry: brand.industry ?? '', website: brand.website ?? '', email: brand.email ?? '', phone: brand.phone.replace(/^\+20/, '0'), defaultFeesPaidBy: brand.defaultFeesPaidBy });
   const [f, setF] = useState(init);
-  useEffect(() => { setF(init()); }, [brand]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setF(init()); }, [brand.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const [touched, setTouched] = useState(false);
   const errors = {
     website: f.website && !/^https?:\/\/\S+$/.test(f.website) ? t('brand.settings.errWebsite') : undefined,
@@ -149,7 +149,7 @@ function Payout({ brand }: { brand: MyBrand }) {
   const [method, setMethod] = useState(brand.payoutMethod ?? 'INSTAPAY');
   const [details, setDetails] = useState<Record<string, string>>(brand.payoutDetails ?? {});
   const [touched, setTouched] = useState(false);
-  useEffect(() => { setMethod(brand.payoutMethod ?? 'INSTAPAY'); setDetails(brand.payoutDetails ?? {}); }, [brand]);
+  useEffect(() => { setMethod(brand.payoutMethod ?? "INSTAPAY"); setDetails(brand.payoutDetails ?? {}); }, [brand.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const fields = PAYOUT_FIELDS[method] ?? [];
   const errors: Record<string, string | undefined> = {
     iban: details.iban && !/^EG\d{27}$/.test(details.iban.replace(/\s/g, '').toUpperCase()) ? t('brand.settings.errIban') : undefined,

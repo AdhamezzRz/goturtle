@@ -89,6 +89,30 @@ export default function DashboardPage() {
         {!create.allowed && <p className="relative mt-4 rounded-xl bg-white/10 px-3 py-2 text-xs text-turtle-50">{create.reason}</p>}
       </section>
 
+      {all.data?.total === 0 && (
+        <Card>
+          <CardHeader title={t('brand.dash.startTitle')} subtitle={t('brand.dash.startHint')} />
+          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { to: '/brand/settings?tab=locations', k: 'location' },
+              { to: '/brand/settings?tab=payout', k: 'payout' },
+              { to: '/brand/orders/new', k: 'order' },
+              { to: '/brand/developers?tab=stores', k: 'store' },
+            ].map((s, i) => (
+              <li key={s.k}>
+                <Link to={s.to} className="flex h-full items-start gap-3 rounded-2xl border border-ink-100 p-4 transition hover:border-turtle-300 hover:bg-turtle-50/40 dark:border-ink-800 dark:hover:bg-ink-800/50">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-turtle-600 text-sm font-bold text-white">{num(i + 1)}</span>
+                  <span>
+                    <span className="block text-sm font-semibold text-ink-900 dark:text-white">{t(`brand.dash.start.${s.k}`)}</span>
+                    <span className="block text-xs text-ink-500">{t(`brand.dash.start.${s.k}Hint`)}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
+
       {/* KPIs */}
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat loading={month.isLoading} icon={<PackageSearch />} tone="sky" label={t('brand.dash.kOrdersMonth')} value={num(month.data?.total)} hint={t('brand.dash.kSince', { date: dateOnly(monthStart + 'T12:00:00Z') })} />
