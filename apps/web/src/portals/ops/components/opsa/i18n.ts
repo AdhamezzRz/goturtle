@@ -112,6 +112,12 @@ registerDictionary({
   'ops.opsa.rs.COMPLETED': { en: 'Completed', ar: 'مكتمل' },
   'ops.opsa.rs.CLOSED': { en: 'Closed', ar: 'مغلق' },
 
+  'ops.opsa.source.PORTAL': { en: 'brand portal', ar: 'بوابة التاجر' },
+  'ops.opsa.source.API': { en: 'API', ar: 'API' },
+  'ops.opsa.source.BULK_UPLOAD': { en: 'bulk upload', ar: 'رفع جماعي' },
+  'ops.opsa.source.SHOPIFY': { en: 'Shopify', ar: 'شوبيفاي' },
+  'ops.opsa.source.WOOCOMMERCE': { en: 'WooCommerce', ar: 'ووكومرس' },
+  'ops.opsa.source.ADMIN': { en: 'operations', ar: 'العمليات' },
   'ops.opsa.actor.STAFF': { en: 'Staff', ar: 'الموظفين' },
   'ops.opsa.actor.BRAND': { en: 'Brand', ar: 'التاجر' },
   'ops.opsa.actor.COURIER': { en: 'Hero', ar: 'المندوب' },

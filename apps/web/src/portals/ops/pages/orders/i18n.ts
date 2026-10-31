@@ -58,6 +58,7 @@ registerDictionary({
   'ops.orders.statusChip': { en: 'Status: {s}', ar: 'الحالة: {s}' },
 
   // detail
+  'ops.orders.detail.slaBreached': { en: 'SLA breached', ar: 'تجاوز موعد التسليم' },
   'ops.orders.detail.back': { en: 'Orders', ar: 'الطلبات' },
   'ops.orders.detail.created': { en: 'Created {t} via {s}', ar: 'أنشئ {t} عبر {s}' },
   'ops.orders.detail.changeStatus': { en: 'Change status', ar: 'تغيير الحالة' },
