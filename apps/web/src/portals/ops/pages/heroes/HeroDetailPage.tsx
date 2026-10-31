@@ -237,7 +237,7 @@ function Overview({ hero }: { hero: HeroDetail }) {
             className="xl:col-span-2"
             title={t('ops.heroes.d.track')}
             subtitle={track.data ? t('ops.heroes.d.trackPoints', { n: num(track.data.points.length), km: num(Math.round(km * 10) / 10) }) : undefined}
-            actions={<Input type="date" value={date} max={cairoToday()} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label={t('common.date')} className="w-44" />}
+            actions={<Input type="date" value={date} max={cairoToday()} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label={t('common.date')} className="!w-44" />}
           >
             {track.isLoading ? (
               <Skeleton className="h-[340px] w-full" />

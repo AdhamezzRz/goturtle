@@ -275,8 +275,8 @@ function Handovers() {
         <FilterField label={t('common.hub')}>
           <Select value={f.hubId} onChange={(e) => setF({ hubId: e.target.value })} placeholder={t('ops.opsb.allHubs')} options={(hubs.data ?? []).map((h) => ({ value: h.id, label: h.name }))} aria-label={t('common.hub')} />
         </FilterField>
-        <FilterField label={t('common.from')}><Input type="date" value={f.from} onChange={(e) => setF({ from: e.target.value })} aria-label={t('common.from')} className="md:w-40" /></FilterField>
-        <FilterField label={t('common.to')}><Input type="date" value={f.to} onChange={(e) => setF({ to: e.target.value })} aria-label={t('common.to')} className="md:w-40" /></FilterField>
+        <FilterField label={t('common.from')}><Input type="date" value={f.from} onChange={(e) => setF({ from: e.target.value })} aria-label={t('common.from')} className="md:!w-40" /></FilterField>
+        <FilterField label={t('common.to')}><Input type="date" value={f.to} onChange={(e) => setF({ to: e.target.value })} aria-label={t('common.to')} className="md:!w-40" /></FilterField>
       </FilterBar>
       {tot && (list.data?.meta.total ?? 0) > 0 && (
         <p className="mb-3 text-sm text-ink-500">
@@ -392,8 +392,8 @@ function HubDesk() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-3">
-        <Field label={t('ops.cash.d.date')}>{(id) => <Input id={id} type="date" max={cairoToday()} value={f.date} onChange={(e) => e.target.value && setF({ date: e.target.value })} className="w-44" />}</Field>
-        <Field label={t('common.hub')}>{(id) => <Select id={id} value={f.hubId} onChange={(e) => setF({ hubId: e.target.value })} placeholder={t('ops.opsb.allHubs')} options={(hubs.data ?? []).map((h) => ({ value: h.id, label: h.name }))} className="w-52" />}</Field>
+        <Field label={t('ops.cash.d.date')}>{(id) => <Input id={id} type="date" max={cairoToday()} value={f.date} onChange={(e) => e.target.value && setF({ date: e.target.value })} className="!w-44" />}</Field>
+        <Field label={t('common.hub')}>{(id) => <Select id={id} value={f.hubId} onChange={(e) => setF({ hubId: e.target.value })} placeholder={t('ops.opsb.allHubs')} options={(hubs.data ?? []).map((h) => ({ value: h.id, label: h.name }))} className="!w-52" />}</Field>
       </div>
       {q.isLoading ? (
         <div className="grid gap-4 md:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40" />)}</div>

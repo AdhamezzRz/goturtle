@@ -248,7 +248,7 @@ export function OnboardHeroWizard({ open, onClose }: { open: boolean; onClose: (
                       {d && <p className="truncate text-xs text-ink-500" dir="ltr">{d.name}</p>}
                     </div>
                     {d && EXPIRING.has(type) && (
-                      <Input type="date" aria-label={t('ops.heroes.d.docExpiry')} className="w-40" value={d.expiresAt} onChange={(e) => set('docs', { ...f.docs, [type]: { ...d, expiresAt: e.target.value } })} />
+                      <Input type="date" aria-label={t('ops.heroes.d.docExpiry')} className="!w-40" value={d.expiresAt} onChange={(e) => set('docs', { ...f.docs, [type]: { ...d, expiresAt: e.target.value } })} />
                     )}
                     <UploadButton purpose="courier_document" label={d ? t('ops.opsb.replaceFile') : t('ops.opsb.chooseFile')} onUploaded={(file) => set('docs', { ...f.docs, [type]: { url: file.url, name: file.name, expiresAt: d?.expiresAt ?? '' } })} />
                     {d && (
@@ -273,7 +273,7 @@ export function OnboardHeroWizard({ open, onClose }: { open: boolean; onClose: (
                 <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">{t('ops.heroes.w.zones')}</p>
                 <p className="text-xs text-ink-500">{t('ops.heroes.w.zonesHint')}</p>
               </div>
-              <Input className="w-full sm:w-56" type="search" placeholder={t('ops.heroes.w.zoneSearch')} value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} aria-label={t('ops.heroes.w.zoneSearch')} />
+              <Input className="!w-full sm:!w-56" type="search" placeholder={t('ops.heroes.w.zoneSearch')} value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} aria-label={t('ops.heroes.w.zoneSearch')} />
             </div>
             {errors.zones && <p className="mb-2 text-xs font-medium text-red-600">{errors.zones}</p>}
             <div className="max-h-56 overflow-y-auto rounded-xl border border-ink-100 p-3 dark:border-ink-800">

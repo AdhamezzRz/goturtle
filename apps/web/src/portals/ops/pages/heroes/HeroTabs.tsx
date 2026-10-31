@@ -193,7 +193,7 @@ export function HeroZonesTab({ hero }: { hero: HeroDetail }) {
         <ZonePrimaryList zones={sel} name={name} onPrimary={(id) => !ro && setSel(sel.map((z) => ({ ...z, isPrimary: z.zoneId === id })))} onRemove={(id) => !ro && toggle(id)} />
       </Section>
       {!ro && (
-        <Section title={t('ops.heroes.w.zones')} subtitle={t('ops.heroes.w.zonesHint')} actions={<Input type="search" className="w-48" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={t('ops.heroes.w.zoneSearch')} aria-label={t('ops.heroes.w.zoneSearch')} />}>
+        <Section title={t('ops.heroes.w.zones')} subtitle={t('ops.heroes.w.zonesHint')} actions={<Input type="search" className="!w-48" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={t('ops.heroes.w.zoneSearch')} aria-label={t('ops.heroes.w.zoneSearch')} />}>
           <ChipGroup
             ariaLabel={t('ops.heroes.w.zones')}
             options={opts.map((z) => ({ value: z.id, label: pick(z, 'name') }))}
