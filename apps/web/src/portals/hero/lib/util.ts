@@ -49,7 +49,7 @@ export function duration(ms: number): string {
   const h = Math.floor((total % 1440) / 60);
   const m = total % 60;
   if (d > 0) return translate('hero.dur.dh', { d: num(d), h: num(h) });
-  if (h > 0) return translate('hero.dur.hm', { h: num(h), m: num(m) });
+  if (h > 0) return m ? translate('hero.dur.hm', { h: num(h), m: num(m) }) : translate('hero.dur.h', { h: num(h) });
   return translate('hero.dur.m', { m: num(m) });
 }
 
@@ -58,7 +58,8 @@ export function minutesLabel(min: number) {
   const total = Math.max(0, Math.round(min));
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return h > 0 ? translate('hero.dur.hm', { h: num(h), m: num(m) }) : translate('hero.dur.m', { m: num(m) });
+  if (h === 0) return translate('hero.dur.m', { m: num(m) });
+  return m ? translate('hero.dur.hm', { h: num(h), m: num(m) }) : translate('hero.dur.h', { h: num(h) });
 }
 
 /** Cairo day ± offset and handy ranges (YYYY-MM-DD). */

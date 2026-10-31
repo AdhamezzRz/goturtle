@@ -20,7 +20,7 @@ import { fetchToday, useHeroMutation, useInvalidateHero, useStop } from '../lib/
 import { currentPosition } from '../lib/geo';
 import { uploadPhoto } from '../lib/media';
 import { nextStop } from '../lib/agenda';
-import { addDays, directionsLink, telLink, whatsappLink } from '../lib/util';
+import { addDays, directionsLink, minutesLabel, telLink, whatsappLink } from '../lib/util';
 import type { DeliverBody, FailBody, StopDetail } from '../types';
 
 const StopMiniMap = lazy(() => import('../components/StopMiniMap'));
@@ -389,7 +389,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
   const resend = useHeroMutation(() => api<{ sent: boolean; expiresInMinutes: number; devCode?: string }>(`/hero/tasks/orders/${stop.id}/resend-otp`, { method: 'POST' }), {
     onSuccess: (r) => {
       setCooldown(60);
-      toast.success(t('hero.otp.sent', { n: r.expiresInMinutes }), r.devCode ? { description: t('hero.otp.dev', { code: r.devCode }), duration: 10_000 } : undefined);
+      toast.success(t('hero.otp.sent', { n: minutesLabel(r.expiresInMinutes) }), r.devCode ? { description: t('hero.otp.dev', { code: r.devCode }), duration: 10_000 } : undefined);
     },
   });
 
