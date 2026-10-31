@@ -34,6 +34,7 @@ export default function DashboardPage() {
 
   const canAnalytics = can('analytics.read');
   const canLive = can('dispatch.manage');
+  const hasLiveData = canAnalytics || canLive;
   const todayQ = useQuery({ queryKey: ['analytics', 'ops', { from: today, to: today }], queryFn: () => api<OpsOverview>('/analytics/ops/overview', { query: { from: today, to: today } }), enabled: canAnalytics, refetchInterval: poll });
   const rangeQ = useQuery({ queryKey: ['analytics', 'ops', { from: from14, to: today }], queryFn: () => api<OpsOverview>('/analytics/ops/overview', { query: { from: from14, to: today } }), enabled: canAnalytics, staleTime: 120_000 });
   const liveQ = useQuery({ queryKey: ['dispatch', 'live', 'all'], queryFn: () => api<LiveSnapshot>('/dispatch/live'), enabled: canLive, refetchInterval: poll });
@@ -92,17 +93,18 @@ export default function DashboardPage() {
           hint={counts ? t('ops.dashboard.kpi.activeHint', { n: num(counts.groups.new) }) : undefined}
         />
         <Kpi label={t('ops.dashboard.kpi.out')} value={num(live?.counters.outForDelivery ?? counts?.byStatus.OUT_FOR_DELIVERY)} loading={countsQ.isLoading && liveQ.isLoading} icon={<Truck />} tone="violet" to="/ops/orders?status=OUT_FOR_DELIVERY" />
-        <Kpi label={t('ops.dashboard.kpi.delivered')} value={num(k?.delivered ?? live?.counters.deliveredToday)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<CheckCircle2 />} tone="turtle" to={`/ops/orders?status=DELIVERED&from=${today}&to=${today}&dateField=deliveredAt`} />
+        {hasLiveData && <Kpi label={t('ops.dashboard.kpi.delivered')} value={num(k?.delivered ?? live?.counters.deliveredToday)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<CheckCircle2 />} tone="turtle" to={`/ops/orders?status=DELIVERED&from=${today}&to=${today}&dateField=deliveredAt`} />}
         {canAnalytics && <Kpi label={t('ops.dashboard.kpi.returned')} value={num(k?.returned)} loading={todayQ.isLoading} icon={<RotateCcw />} tone="red" to="/ops/orders?status=returns" />}
-        <Kpi label={t('ops.dashboard.kpi.failed')} value={num(k?.failedAttempts ?? live?.counters.failedToday)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<XCircle />} tone="amber" to="/ops/orders?status=FAILED_ATTEMPT" />
+        {hasLiveData && <Kpi label={t('ops.dashboard.kpi.failed')} value={num(k?.failedAttempts ?? live?.counters.failedToday)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<XCircle />} tone="amber" to="/ops/orders?status=FAILED_ATTEMPT" />}
         {canAnalytics && (
           <>
             <Kpi label={t('ops.dashboard.kpi.success')} value={k14?.successRate == null ? '—' : pct(k14.successRate)} loading={rangeQ.isLoading} icon={<ShieldAlert />} tone="turtle" hint={k14?.firstAttemptSuccessRate != null ? t('ops.dashboard.kpi.firstAttempt', { v: pct(k14.firstAttemptSuccessRate) }) : undefined} to="/ops/analytics" />
             <Kpi label={t('ops.dashboard.kpi.onTime')} value={k14?.onTimeRate == null ? '—' : pct(k14.onTimeRate)} loading={rangeQ.isLoading} icon={<Clock4 />} tone="sky" hint={k14?.avgHoursToDeliver != null ? t('ops.dashboard.kpi.avgHours', { n: num(k14.avgHoursToDeliver) }) : undefined} to="/ops/analytics" />
           </>
         )}
-        <Kpi label={t('ops.dashboard.kpi.cod')} value={money(k?.codCollectedCents ?? live?.counters.collectedTodayCents)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<Banknote />} tone="sand" />
+        {hasLiveData && <Kpi label={t('ops.dashboard.kpi.cod')} value={money(k?.codCollectedCents ?? live?.counters.collectedTodayCents)} loading={canAnalytics ? todayQ.isLoading : liveQ.isLoading} icon={<Banknote />} tone="sand" />}
         {canAnalytics && <Kpi label={t('ops.dashboard.kpi.custody')} value={money(k?.cashInCustodyCents, { compact: true })} loading={todayQ.isLoading} icon={<Wallet />} tone="sand" to={can('cash.read') ? '/ops/cash' : undefined} />}
+        {hasLiveData && (
         <Kpi
           label={t('ops.dashboard.kpi.heroes')}
           value={num(k?.activeHeroes ?? onlineHeroes)}
@@ -111,7 +113,7 @@ export default function DashboardPage() {
           tone="turtle"
           hint={live ? t('ops.dashboard.kpi.heroesHint', { n: num(onlineHeroes) }) : undefined}
           to={can('couriers.track') ? '/ops/live' : undefined}
-        />
+        />        )}
         {can('tickets.read') && (
           <Kpi
             label={t('ops.dashboard.kpi.tickets')}
