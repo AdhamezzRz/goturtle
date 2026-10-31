@@ -188,7 +188,7 @@ export function HeroZonesTab({ hero }: { hero: HeroDetail }) {
   };
   const opts = useMemo(() => (zones.data ?? []).filter((z) => !filter || z.nameEn.toLowerCase().includes(filter.toLowerCase()) || z.nameAr.includes(filter)), [zones.data, filter]);
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <Section title={t('ops.heroes.d.zonesTitle')} actions={!ro && <Button disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()}>{t('ops.heroes.d.saveZones')}</Button>}>
         <ZonePrimaryList zones={sel} name={name} onPrimary={(id) => !ro && setSel(sel.map((z) => ({ ...z, isPrimary: z.zoneId === id })))} onRemove={(id) => !ro && toggle(id)} />
       </Section>

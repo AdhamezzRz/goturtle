@@ -58,7 +58,7 @@ export function Stat({ label, value, hint, icon, tone = 'turtle', loading, onCli
         {loading ? (
           <div className="mt-1.5 h-6 w-20 animate-pulse2 rounded-md bg-ink-100 dark:bg-ink-800" />
         ) : (
-          <p className="mt-0.5 truncate font-display text-lg font-bold tracking-tight text-ink-900 dark:text-white sm:text-2xl">{value}</p>
+          <p className="mt-0.5 font-display text-lg font-bold leading-tight [&_.ltr]:whitespace-normal tracking-tight text-ink-900 dark:text-white sm:text-2xl">{value}</p>
         )}
         {hint && !loading && <div className="mt-0.5 truncate text-xs text-ink-500">{hint}</div>}
       </div>
