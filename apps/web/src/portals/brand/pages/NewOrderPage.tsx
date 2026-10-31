@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -58,8 +58,10 @@ export default function NewOrderPage() {
   const bind = (k: keyof FormState) => ({ value: f[k] as string, onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => set(k, e.target.value as never) });
 
   // Brand defaults once loaded
+  const defaultsApplied = useRef(false);
   useEffect(() => {
-    if (!brand.data) return;
+    if (!brand.data || defaultsApplied.current) return;
+    defaultsApplied.current = true;
     const def = (locations.data ?? brand.data.locations).find((l) => l.isDefault && l.isActive) ?? (locations.data ?? brand.data.locations)[0];
     setF((s) => ({ ...s, allowOpening: brand.data.allowOpenPackage, feesPaidBy: brand.data.defaultFeesPaidBy, pickupLocationId: s.pickupLocationId || def?.id || '' }));
   }, [brand.data, locations.data]);

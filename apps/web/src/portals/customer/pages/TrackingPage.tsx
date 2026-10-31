@@ -454,15 +454,18 @@ function AddressModal({ open, onClose, tn, d }: { open: boolean; onClose: () => 
   const [f, setF] = useState({ building: '', floor: '', apartment: '', landmark: '', notes: '', pin: null as { lat: number; lng: number } | null });
   useEffect(() => {
     if (open && a) setF({ building: a.building ?? '', floor: a.floor ?? '', apartment: a.apartment ?? '', landmark: a.landmark ?? '', notes: '', pin: a.lat != null && a.lng != null ? { lat: a.lat, lng: a.lng } : null });
-  }, [open, a]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   const m = useMutation({
     mutationFn: () => {
       const body: Record<string, unknown> = {};
-      for (const k of ['building', 'floor', 'apartment', 'landmark', 'notes'] as const) if (f[k].trim()) body[k] = f[k].trim();
+      for (const k of ['building', 'floor', 'apartment', 'landmark'] as const) if (f[k].trim() && f[k].trim() !== (a?.[k] ?? '')) body[k] = f[k].trim();
+      if (f.notes.trim()) body.notes = f.notes.trim();
       if (f.pin && (f.pin.lat !== a?.lat || f.pin.lng !== a?.lng)) Object.assign(body, f.pin);
+      if (!Object.keys(body).length) return Promise.resolve(null);
       return api(`/track/${tn}/address`, { method: 'PATCH', auth: 'customer', body });
     },
-    onSuccess: () => { toast.success(t('customer.addr.done')); qc.invalidateQueries({ queryKey: ['track', tn] }); onClose(); },
+    onSuccess: (r) => { if (r !== null) toast.success(t('customer.addr.done')); qc.invalidateQueries({ queryKey: ['track', tn] }); onClose(); },
     onError: (e) => toast.error((e as { code?: string }).code === 'PIN_OUT_OF_ZONE' ? t('customer.addr.outOfZone') : (e as { code?: string }).code === 'ADDRESS_LOCKED' ? t('customer.addr.locked') : errorMessage(e)),
   });
   return (
