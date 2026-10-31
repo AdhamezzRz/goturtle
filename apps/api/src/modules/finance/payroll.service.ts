@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, gt, gte, inArray, isNull, lt, ne, or, sql, type SQL } from 'drizzle-orm';
 import type { PayoutMethod, PayoutStatus } from '@goturtle/shared';
 import type { Db, DbOrTx } from '../../db/client';
-import { courierAdjustments, courierPayouts, couriers, ledgerAccounts, shifts, users } from '../../db/schema';
+import { courierAdjustments, courierPayouts, couriers, ledgerAccounts, ledgerEntries, ledgerTransactions, shifts, users } from '../../db/schema';
 import { InjectDb } from '../../core/database.module';
 import { AuditService } from '../../core/audit.service';
 import { LedgerService } from '../../core/ledger/ledger.service';
@@ -96,6 +96,15 @@ export class PayrollService {
         const balance = await this.heroLedger.balance(courierId, tx);
         if (balance <= 0) return { skip: 'NOTHING_PAYABLE' as const, payableCents: balance };
         const breakdown = payoutBreakdown(await this.heroLedger.totals(courierId, range.start, range.end, tx));
+        // The period's salary belongs to this payout even when it is posted after the period ends.
+        const [salaryTx] = await tx
+          .select({ at: ledgerTransactions.createdAt, amount: sql<number>`coalesce(sum(${ledgerEntries.creditCents}), 0)`.mapWith(Number) })
+          .from(ledgerTransactions)
+          .innerJoin(ledgerEntries, eq(ledgerEntries.transactionId, ledgerTransactions.id))
+          .innerJoin(ledgerAccounts, eq(ledgerAccounts.id, ledgerEntries.accountId))
+          .where(and(eq(ledgerTransactions.reference, `salary:${courierId}:${range.from}:${range.to}`), eq(ledgerAccounts.code, this.heroLedger.payableCode(courierId))))
+          .groupBy(ledgerTransactions.id, ledgerTransactions.createdAt);
+        if (salaryTx && (salaryTx.at < range.start || salaryTx.at >= range.end)) breakdown.salaryCents += toNumber(salaryTx.amount);
         const shiftRows = await tx
           .select({ id: shifts.id, workedMinutes: shifts.workedMinutes })
           .from(shifts)
