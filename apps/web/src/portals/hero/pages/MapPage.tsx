@@ -76,7 +76,10 @@ export default function MapPage() {
       {points.length === 0 ? (
         <EmptyState icon={<MapPinOff className="h-7 w-7" />} title={t('hero.map.empty')} description={t('hero.map.emptyHint')} />
       ) : (
-        <LiveMap points={points} route={route} height="calc(100dvh - 360px)" className="min-h-[300px] shadow-card" />
+        <div className="relative isolate z-0">
+          {/* Remount once when my first GPS fix arrives so the initial fit includes me. */}
+          <LiveMap key={me ? 'me' : 'no-me'} points={points} route={route} height="calc(100dvh - 360px)" className="min-h-[300px] shadow-card" />
+        </div>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-3 px-1 text-xs font-semibold text-ink-600 dark:text-ink-300">

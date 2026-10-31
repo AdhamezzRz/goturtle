@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarClock, ChevronDown, Coffee, Coins, LocateFixed, LocateOff, Power, Wallet, Zap } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -6,13 +6,15 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { dateTime, timeOnly } from '@/lib/format';
+import { dateTime, num, timeOnly } from '@/lib/format';
 import { errorMessage, useI18n } from '@/i18n';
 import { Avatar, Button } from '@/components/ui';
 import { Money, Sheet } from './components/kit';
-import { useDashboard, useHeroMutation, useInvalidateHero } from './lib/queries';
+import { useDashboard, useEarningsTotals, useHeroMutation, useInvalidateHero } from './lib/queries';
+import { periodRange } from './lib/util';
 import { requestLocation, useGeo, useLocationTracker } from './lib/geo';
 import type { Availability, Dashboard } from './types';
+import { prefetchHeroScreens } from './lib/prefetch';
 import './lib/pwa';
 
 type Settable = 'ONLINE' | 'ON_BREAK' | 'OFFLINE';
@@ -29,12 +31,16 @@ export function HeroHeader() {
   const { me } = useAuth();
   const { t } = useI18n();
   const dash = useDashboard();
+  // Today's earnings from the ledger (same number as the Earnings screen, bonuses included).
+  const range = periodRange('today');
+  const earned = useEarningsTotals(range.from, range.to, 60_000);
   const [open, setOpen] = useState(false);
   const d = dash.data;
   const availability: Availability = (d?.hero.availability ?? (me?.courier?.availability as Availability | undefined)) ?? 'OFFLINE';
   const working = availability === 'ONLINE' || availability === 'BUSY';
   useLocationTracker(!!me && working);
   const geo = useGeo();
+  useEffect(() => prefetchHeroScreens(), []);
   if (!me) return null;
 
   const cash = d?.cash ?? { onHandCents: me.courier?.cashOnHandCents ?? 0, limitCents: me.courier?.cashLimitCents ?? 0, warning: 'OK' };
@@ -49,7 +55,7 @@ export function HeroHeader() {
         </Link>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-bold leading-tight">{me.name}</p>
-          <p className="ltr text-start text-xs text-turtle-100/80">{d?.hero.code ?? me.courier?.code}</p>
+          <p className="text-xs text-turtle-100/80"><span className="ltr">{d?.hero.code ?? me.courier?.code}</span></p>
         </div>
         <button
           type="button"
@@ -79,7 +85,7 @@ export function HeroHeader() {
             </span>
             <span className="block truncate text-sm font-extrabold">
               <Money cents={cash.onHandCents} />
-              {cash.limitCents > 0 && <span className="ltr text-[11px] font-semibold opacity-75"> / {Math.round(cash.limitCents / 100).toLocaleString('en')}</span>}
+              {cash.limitCents > 0 && <span className="text-[11px] font-semibold opacity-75"> / {num(Math.round(cash.limitCents / 100))}</span>}
             </span>
           </span>
         </Link>
@@ -87,7 +93,7 @@ export function HeroHeader() {
           <Coins className="h-5 w-5 shrink-0 text-sand-300" />
           <span className="min-w-0 leading-tight">
             <span className="block text-[11px] font-semibold text-turtle-100/80">{t('hero.header.earnedToday')}</span>
-            <span className="block truncate text-sm font-extrabold">{d ? <Money cents={d.today.earningsCents} /> : '—'}</span>
+            <span className="block truncate text-sm font-extrabold">{earned.data ? <Money cents={earned.data.totals.earnedCents} /> : d ? <Money cents={d.today.earningsCents} /> : '—'}</span>
           </span>
         </Link>
       </div>

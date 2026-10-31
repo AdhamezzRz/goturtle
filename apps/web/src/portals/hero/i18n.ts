@@ -471,7 +471,7 @@ registerDictionary({
   'hero.ach.toNext': { en: '{xp} XP to {emoji} {name}', ar: 'فاضل {xp} نقطة لـ {emoji} {name}' },
   'hero.ach.maxLevel': { en: 'Top level reached — legend! 🥷', ar: 'وصلت لأعلى مستوى — أسطورة! 🥷' },
   'hero.ach.streak': { en: 'Streak', ar: 'أيام متتالية' },
-  'hero.ach.streakN': { en: '{n} days', ar: '{n} يوم' },
+  'hero.ach.streakN': { en: '{n} d', ar: '{n} يوم' },
   'hero.ach.rating': { en: 'Rating', ar: 'التقييم' },
   'hero.ach.badges': { en: 'Badges', ar: 'الأوسمة' },
   'hero.ach.earned': { en: 'Earned', ar: 'حصلت عليه' },

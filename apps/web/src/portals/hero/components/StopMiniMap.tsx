@@ -6,5 +6,10 @@ export default function StopMiniMap({ lat, lng, kind = 'order' }: { lat: number;
   const geo = useGeo();
   const points: MapPoint[] = [{ id: 'dest', lat, lng, kind }];
   if (geo.last) points.push({ id: 'me', lat: geo.last.lat, lng: geo.last.lng, kind: 'hero' });
-  return <LiveMap points={points} height={170} className="rounded-2xl" />;
+  // isolate: Leaflet panes use z-index 400+, keep them under the sticky bar and tab bar.
+  return (
+    <div className="relative isolate z-0">
+      <LiveMap points={points} height={170} className="rounded-2xl" />
+    </div>
+  );
 }

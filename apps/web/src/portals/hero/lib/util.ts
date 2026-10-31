@@ -1,5 +1,5 @@
 import { translate } from '@/i18n';
-import { cairoToday } from '@/lib/format';
+import { cairoToday, num } from '@/lib/format';
 
 /** tel: link (E.164 works everywhere). */
 export const telLink = (phone: string | null | undefined) => (phone ? `tel:${phone.replace(/\s+/g, '')}` : undefined);
@@ -48,12 +48,18 @@ export function duration(ms: number): string {
   const d = Math.floor(total / 1440);
   const h = Math.floor((total % 1440) / 60);
   const m = total % 60;
-  if (d > 0) return translate('hero.dur.dh', { d, h });
-  if (h > 0) return translate('hero.dur.hm', { h, m });
-  return translate('hero.dur.m', { m });
+  if (d > 0) return translate('hero.dur.dh', { d: num(d), h: num(h) });
+  if (h > 0) return translate('hero.dur.hm', { h: num(h), m: num(m) });
+  return translate('hero.dur.m', { m: num(m) });
 }
 
-export const minutesLabel = (min: number) => duration(min * 60_000);
+/** Worked/scheduled minutes as hours + minutes (never days: "39h 20m"). */
+export function minutesLabel(min: number) {
+  const total = Math.max(0, Math.round(min));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h > 0 ? translate('hero.dur.hm', { h: num(h), m: num(m) }) : translate('hero.dur.m', { m: num(m) });
+}
 
 /** Cairo day ± offset and handy ranges (YYYY-MM-DD). */
 export function addDays(day: string, n: number) {

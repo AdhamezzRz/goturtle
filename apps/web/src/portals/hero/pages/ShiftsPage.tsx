@@ -116,13 +116,11 @@ export default function ShiftsPage() {
         onClose={() => setClock(null)}
         onDone={(kind, res) => {
           setClock(null);
-          const warn = !!res.warnings?.includes('GEOFENCE_WARNING') || res.geofenceWarning;
+          const warn = !!res.warnings?.includes('GEOFENCE_WARNING');
+          const base = kind === 'in' ? t('hero.shifts.inDoneHint', { time: timeOnly(res.endAt) }) : t('hero.shifts.outDoneHint', { worked: minutesLabel(res.workedMinutes), amount: money(res.earnedCents) });
           setDone({
             title: kind === 'in' ? t('hero.shifts.inDone') : t('hero.shifts.outDone'),
-            subtitle:
-              kind === 'in'
-                ? warn ? t('hero.shifts.geofenceFlagged') : t('hero.shifts.inDoneHint', { time: timeOnly(res.endAt) })
-                : t('hero.shifts.outDoneHint', { worked: minutesLabel(res.workedMinutes), amount: money(res.earnedCents) }),
+            subtitle: warn ? `${base}\n${t('hero.shifts.geofenceFlagged')}` : base,
             warn,
           });
         }}
@@ -174,7 +172,7 @@ function CurrentShift({ shift, now }: { shift: Shift; now: number }) {
         <div className="h-full rounded-full bg-white" style={{ width: `${progress * 100}%` }} />
       </div>
       <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-white/85">
-        <span className="ltr rounded-full bg-white/15 px-2 py-0.5">{shiftTime(shift)}</span>
+        <span className="rounded-full bg-white/15 px-2 py-0.5">{shiftTime(shift)}</span>
         {shift.clockInAt && <span className="rounded-full bg-white/15 px-2 py-0.5">{t('hero.shifts.clockedInAt', { time: timeOnly(shift.clockInAt) })}</span>}
         <span className="rounded-full bg-white/15 px-2 py-0.5">{t('hero.shifts.workedSoFar', { d: duration(worked) })}</span>
         {shift.hub && <span className="rounded-full bg-white/15 px-2 py-0.5">{shift.hub.name}</span>}
@@ -197,7 +195,7 @@ function NextShift({ shift, now, onConfirm, confirming }: { shift: Shift; now: n
       <p className={cn('mt-3 text-sm', open ? 'text-white/80' : 'text-ink-500')}>{start > now ? t('hero.shifts.startsIn') : t('hero.shifts.startedAgo')}</p>
       <p className={cn('font-display text-4xl font-extrabold', !open && 'text-ink-900 dark:text-white')}>{duration(Math.abs(start - now))}</p>
       <p className={cn('mt-2 text-sm font-semibold', open ? 'text-white/90' : 'text-ink-700 dark:text-ink-200')}>
-        {dateTime(shift.startAt, { weekday: 'long', day: 'numeric', month: 'short' })} · <span className="ltr">{shiftTime(shift)}</span>
+        {dateTime(shift.startAt, { weekday: 'long', day: 'numeric', month: 'short' })} · {shiftTime(shift)}
       </p>
       <p className={cn('mt-0.5 text-xs', open ? 'text-white/75' : 'text-ink-500')}>
         {shift.template?.name ? `${shift.template.name} · ` : ''}{shift.hub?.name}
@@ -225,7 +223,7 @@ function ShiftRow({ s, onConfirm }: { s: Shift; onConfirm?: () => void }) {
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-ink-900 dark:text-white">{dateTime(s.startAt, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
-          <p className="ltr text-start text-xs text-ink-500">{shiftTime(s)}</p>
+          <p className="text-xs text-ink-500">{shiftTime(s)}</p>
         </div>
         <ShiftBadge s={s} />
       </div>
@@ -285,7 +283,7 @@ function ClockSheet({
       open={open}
       onClose={onClose}
       title={clock.kind === 'in' ? t('hero.shifts.clockIn') : t('hero.shifts.clockOut')}
-      subtitle={<span className="ltr">{shiftTime(clock.shift)}</span>}
+      subtitle={shiftTime(clock.shift)}
       footer={
         <div className="space-y-2 pb-1">
           {!online && <OfflineBlock />}

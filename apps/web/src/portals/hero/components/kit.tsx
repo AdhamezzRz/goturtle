@@ -254,7 +254,7 @@ export function SuccessOverlay({ open, title, subtitle, tone = 'green', continue
         {icon ?? <Check className="h-16 w-16" strokeWidth={3} />}
       </div>
       <p className="mt-6 font-display text-3xl font-extrabold">{title}</p>
-      {subtitle && <div className="mt-2 max-w-xs text-base text-white/85">{subtitle}</div>}
+      {subtitle && <div className="mt-2 max-w-xs whitespace-pre-line text-base text-white/85">{subtitle}</div>}
       <button type="button" onClick={() => done.current()} className="mt-10 h-14 w-full max-w-xs rounded-2xl bg-white text-lg font-bold text-ink-900 shadow-pop active:scale-[.98]">
         {continueLabel}
       </button>

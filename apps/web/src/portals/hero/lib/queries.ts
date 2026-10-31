@@ -113,8 +113,8 @@ export const useLeaderboard = (period: 'day' | 'week' | 'month') => useHeroQuery
 export const useDocuments = () => useHeroQuery<HeroDocument[]>(['documents'], '/hero/me/documents');
 
 /** Earnings totals for a range (page 1 only) — used for the period cards. */
-export const useEarningsTotals = (from: string, to: string) =>
-  useHeroQuery<Earnings>(['earnings', from, to], '/hero/me/earnings', { query: { from, to, pageSize: 1 } });
+export const useEarningsTotals = (from: string, to: string, poll?: number) =>
+  useHeroQuery<Earnings>(['earnings', from, to], '/hero/me/earnings', { query: { from, to, pageSize: 1 }, poll });
 
 /** Ledger statement with "load more". */
 export function useLedger(from: string, to: string) {
@@ -144,7 +144,7 @@ export async function fetchToday(qc: ReturnType<typeof useQueryClient>): Promise
 export function useInvalidateHero() {
   const qc = useQueryClient();
   return (...extra: QueryKey[]) => {
-    for (const k of [['hero', 'today'], ['hero', 'dashboard'], ['hero', 'wallet'], ['hero', 'profile'], ['hero', 'runsheet'], ...extra]) void qc.invalidateQueries({ queryKey: k });
+    for (const k of [['hero', 'today'], ['hero', 'dashboard'], ['hero', 'wallet'], ['hero', 'profile'], ['hero', 'runsheet'], ['hero', 'earnings'], ...extra]) void qc.invalidateQueries({ queryKey: k });
   };
 }
 
