@@ -5,6 +5,9 @@ import { AppModule } from '../../app.module';
 import { seedOperationsDemo } from './operations.demo';
 import { seedWorkforceDemo } from './workforce.demo';
 import { seedPlatformDemo } from './platform.demo';
+import { seedIntegrityDemo } from './integrity.demo';
+import { seedMoneyDemo } from './money.demo';
+import { seedIntakeDemo } from './intake.demo';
 
 /**
  * Demo activity generated through the real services (so the ledger, events,
@@ -14,6 +17,9 @@ export async function runDemoSteps(app: INestApplicationContext) {
   await seedOperationsDemo(app);
   await seedWorkforceDemo(app);
   await seedPlatformDemo(app);
+  await seedIntegrityDemo(app);
+  await seedMoneyDemo(app);
+  await seedIntakeDemo(app);
 }
 
 /** CLI entry (npm run db:seed): boots its own application context. */
