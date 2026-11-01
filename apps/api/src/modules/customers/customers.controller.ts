@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Access, CurrentPrincipal, RequestMeta, type RequestMetaInfo } from '../../common/decorators';
 import type { Principal } from '../../common/principal';
 import { CustomersService } from './customers.service';
-import { BlockCustomerDto, CustomerListQuery } from './customers.dto';
+import { BlockCustomerDto, CustomerListQuery, CustomerRiskQuery, PrepaymentRuleDto } from './customers.dto';
 
 @ApiTags('Customers')
 @ApiBearerAuth()
@@ -18,6 +18,13 @@ export class CustomersController {
     return this.customers.list(q);
   }
 
+  @Access({ actors: ['staff', 'brand', 'apiKey'], permissions: ['orders.read'] })
+  @Get('risk')
+  @ApiOperation({ summary: "Recipient risk for a phone: level, score, flags, prepayment rule, verified pin — no other brands' data" })
+  risk(@Query() q: CustomerRiskQuery) {
+    return this.customers.riskForPhone(q.phone, q.codAmountCents);
+  }
+
   @Access({ actors: ['staff'], permissions: ['orders.read'] })
   @Get(':id')
   @ApiOperation({ summary: 'Customer profile: stats, reliability and the 20 most recent orders' })
@@ -29,7 +36,7 @@ export class CustomersController {
   @Post(':id/block')
   @HttpCode(200)
   block(@Param('id') id: string, @Body() dto: BlockCustomerDto, @CurrentPrincipal() p: Principal, @RequestMeta() meta: RequestMetaInfo) {
-    return this.customers.setBlocked(id, true, dto.reason, p, meta);
+    return this.customers.setBlocked(id, true, dto.reason, p, meta, dto.requirePrepayment);
   }
 
   @Access({ actors: ['staff'], permissions: ['orders.update'] })
@@ -37,5 +44,13 @@ export class CustomersController {
   @HttpCode(200)
   unblock(@Param('id') id: string, @Body() dto: BlockCustomerDto, @CurrentPrincipal() p: Principal, @RequestMeta() meta: RequestMetaInfo) {
     return this.customers.setBlocked(id, false, dto.reason, p, meta);
+  }
+
+  @Access({ actors: ['staff'], permissions: ['orders.update'] })
+  @Post(':id/prepayment')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Network rule: require prepayment (no COD) for this phone, or lift it' })
+  prepayment(@Param('id') id: string, @Body() dto: PrepaymentRuleDto, @CurrentPrincipal() p: Principal, @RequestMeta() meta: RequestMetaInfo) {
+    return this.customers.setPrepayment(id, dto.required, dto.reason, p, meta);
   }
 }

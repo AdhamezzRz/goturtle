@@ -44,11 +44,40 @@ export interface BrandingSettings {
   primaryColor: string;
 }
 
+/** Delivery integrity: RTO shield (confirmations, holds, prepayment) and failed-attempt proof. */
+export interface IntegritySettings {
+  /** Ask risky / high-COD recipients to confirm before dispatch. */
+  confirmationEnabled: boolean;
+  /** Ask for confirmation at or above this COD risk score. */
+  confirmAboveRisk: number;
+  /** …or when the COD amount is at least this (piasters). */
+  confirmCodAboveCents: number;
+  /** Unconfirmed orders at or above this risk are held and cannot be dispatched. */
+  holdUnconfirmedAboveRisk: number;
+  /** Hours without a reply before a confirmation counts as NO_RESPONSE. */
+  noResponseAfterHours: number;
+  /** COD orders at or above this risk are held until the brand collects online (100 = only the maximum score). */
+  prepayAboveRisk: number;
+  /** A hero must be this close to the pin to report a failed attempt (0 = off). */
+  failedAttemptGeofenceMeters: number;
+  /** Logged calls required before "customer unreachable / not present" (0 = off). */
+  unreachableMinCalls: number;
+  /** Minimum minutes between two counted calls. */
+  unreachableMinSpacingMinutes: number;
+  /** Hours the customer has to dispute a failed attempt. */
+  attemptDisputeWindowHours: number;
+  /** Ask recipients without a map pin to share their location before delivery. */
+  requestPinWhenMissing: boolean;
+  /** Channel for confirmation, attempt verification and location requests. */
+  confirmationChannel: 'WHATSAPP' | 'SMS';
+}
+
 export interface SettingsMap {
   company: CompanySettings;
   notifications: NotificationSettings;
   operations: OperationsSettings;
   branding: BrandingSettings;
+  integrity: IntegritySettings;
 }
 export type SettingKey = keyof SettingsMap;
 
@@ -132,6 +161,37 @@ export const SETTINGS: { [K in SettingKey]: SettingDefinition<SettingsMap[K]> } 
     description: 'Portal and tracking page branding',
     defaults: { primaryColor: '#1E8E5A' },
     fields: { primaryColor: { type: 'string', max: 7, pattern: /^#[0-9A-Fa-f]{6}$/ } },
+  },
+  integrity: {
+    description: 'Delivery integrity: customer confirmation before dispatch, holds, prepayment and failed-attempt proof',
+    defaults: {
+      confirmationEnabled: true,
+      confirmAboveRisk: 30,
+      confirmCodAboveCents: 150_000,
+      holdUnconfirmedAboveRisk: 60,
+      noResponseAfterHours: 20,
+      prepayAboveRisk: 85,
+      failedAttemptGeofenceMeters: 300,
+      unreachableMinCalls: 2,
+      unreachableMinSpacingMinutes: 3,
+      attemptDisputeWindowHours: 24,
+      requestPinWhenMissing: true,
+      confirmationChannel: 'WHATSAPP',
+    },
+    fields: {
+      confirmationEnabled: { type: 'boolean' },
+      confirmAboveRisk: { type: 'int', min: 0, max: 100 },
+      confirmCodAboveCents: { type: 'int', min: 0, max: 100_000_000 },
+      holdUnconfirmedAboveRisk: { type: 'int', min: 0, max: 100 },
+      noResponseAfterHours: { type: 'int', min: 1, max: 168 },
+      prepayAboveRisk: { type: 'int', min: 1, max: 100 },
+      failedAttemptGeofenceMeters: { type: 'int', min: 0, max: 5000 },
+      unreachableMinCalls: { type: 'int', min: 0, max: 5 },
+      unreachableMinSpacingMinutes: { type: 'int', min: 0, max: 60 },
+      attemptDisputeWindowHours: { type: 'int', min: 1, max: 168 },
+      requestPinWhenMissing: { type: 'boolean' },
+      confirmationChannel: { type: 'enum', values: ['WHATSAPP', 'SMS'] },
+    },
   },
 };
 

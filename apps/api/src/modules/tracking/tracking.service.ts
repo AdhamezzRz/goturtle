@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, asc, desc, eq, isNull, or } from 'drizzle-orm';
 import {
   CUSTOMER_STEP_LABELS, CUSTOMER_STEPS, customerStepIndex, haversineKm, isValidTrackingNumber, maskPhone, normalizeTrackingNumber,
@@ -16,6 +17,7 @@ import { OrdersService } from '../orders/orders.service';
 import type { OrderRow } from '../orders/order-factory.service';
 import { affected, assertDayInRange, auditPrincipal, endOfCairoDay, firstName, round2 } from '../orders/ops-kit';
 import type { RateDto, RescheduleDto, UpdateAddressDto } from './tracking.dto';
+import { CUSTOMER_PIN_EVENT, type CustomerPinEvent } from '../address-book/address-book.service';
 
 /** Before the parcel leaves with a hero for delivery. */
 const BEFORE_OUT: OrderStatus[] = ['CREATED', 'PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_HUB', 'ASSIGNED', 'ON_HOLD'];
@@ -37,6 +39,7 @@ export class TrackingService {
     private readonly audit: AuditService,
     private readonly workflow: OrderWorkflowService,
     private readonly orders: OrdersService,
+    private readonly events: EventEmitter2,
   ) {}
 
   private async byTracking(raw: string): Promise<OrderRow> {
@@ -225,6 +228,8 @@ export class TrackingService {
       await this.workflow.addNote(tx, o, actor, { reason: 'CUSTOMER_ADDRESS_UPDATE', note: `Customer updated ${fields.map((f) => (f === 'lat' || f === 'lng' ? 'map pin' : f)).filter((v, i, a) => a.indexOf(v) === i).join(', ')}`, isPublic: true, metadata: { fields } });
       await this.audit.record(auditPrincipal(actor), { action: 'order.customer_address', entity: 'Order', entityId: o.id, after: patch }, null, tx);
     });
+    // Address book: a customer-placed pin verifies the address for future orders.
+    if (dto.lat != null && dto.lng != null) this.events.emit(CUSTOMER_PIN_EVENT, { orderId: found.id, lat: dto.lat, lng: dto.lng } satisfies CustomerPinEvent);
     return this.track(found.trackingNumber, p);
   }
 

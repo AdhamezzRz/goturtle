@@ -11,6 +11,7 @@ import { cairoToday } from '../../db/helpers';
 import { NetworkService, type ZoneInfo } from '../network/network.service';
 import { round2 } from '../orders/ops-kit';
 import { RunsheetsService } from './runsheets.service';
+import { SettingsService } from '../settings/settings.service';
 import type { AutoAssignDto } from './dispatch.dto';
 
 /** Statuses in which a parcel counts against a hero's capacity. */
@@ -47,7 +48,10 @@ export interface Evaluation {
   cashHeadroomCents: number;
 }
 
-type PoolOrder = { id: string; trackingNumber: string; zoneId: string; collectCents: number; lat: number | null; lng: number | null; status: OrderStatus; priority: number; promisedBy: Date | null };
+type PoolOrder = {
+  id: string; trackingNumber: string; zoneId: string; collectCents: number; lat: number | null; lng: number | null; status: OrderStatus; priority: number; promisedBy: Date | null;
+  confirmationStatus: string; riskScore: number; metadata: unknown;
+};
 
 const AVAILABILITY_POINTS: Record<CourierAvailability, number> = { ONLINE: 15, BUSY: 8, ON_BREAK: 4, OFFLINE: 0 };
 
@@ -64,7 +68,19 @@ export class AssignmentService {
     @InjectDb() private readonly db: Db,
     private readonly network: NetworkService,
     private readonly runsheets: RunsheetsService,
+    private readonly settings: SettingsService,
   ) {}
+
+  /**
+   * Delivery integrity: unconfirmed high-risk or declined parcels must not be
+   * planned (the workflow guard would refuse them with CONFIRMATION_REQUIRED).
+   */
+  private async integrityBlocked(o: { confirmationStatus: string; riskScore: number; metadata: unknown }): Promise<boolean> {
+    if ((o.metadata as { integrity?: { override?: unknown } } | null)?.integrity?.override) return false;
+    if (o.confirmationStatus === 'DECLINED') return true;
+    const s = await this.settings.get('integrity');
+    return s.confirmationEnabled && (o.confirmationStatus === 'PENDING' || o.confirmationStatus === 'NO_RESPONSE') && o.riskScore >= s.holdUnconfirmedAboveRisk;
+  }
 
   async candidates(): Promise<Candidate[]> {
     const rows = await this.db
@@ -145,11 +161,13 @@ export class AssignmentService {
     if (!order) throw notFound('Order', orderId);
     if (isTerminal(order.status)) throw new DomainError('ORDER_FINAL', `Order is ${order.status}`, HttpStatus.CONFLICT);
     const zone = await this.network.zoneById(order.zoneId);
+    const blocked = await this.integrityBlocked(order);
     const evals = (await this.candidates()).map((c) => this.evaluate(order, zone!, c));
     const eligible = evals.filter((e) => e.eligible).sort((a, b) => b.score - a.score);
     return {
       order: { id: order.id, trackingNumber: order.trackingNumber, status: order.status, collectCents: order.collectCents, zone: this.network.zoneSummary(zone!) },
-      candidates: eligible.slice(0, 5),
+      blockedBy: blocked ? 'CONFIRMATION_REQUIRED' : null,
+      candidates: blocked ? [] : eligible.slice(0, 5),
       ineligible: evals.filter((e) => !e.eligible && !e.reasons.includes('NOT_IN_ZONE')).sort((a, b) => b.score - a.score).slice(0, 10),
     };
   }
@@ -167,7 +185,10 @@ export class AssignmentService {
     if (date < cairoToday()) throw new DomainError('INVALID_DATE', 'Cannot plan a past day', HttpStatus.UNPROCESSABLE_ENTITY);
     const skipped: Array<{ orderId: string; trackingNumber?: string; reasons: string[] }> = [];
     let pool: PoolOrder[];
-    const cols = { id: orders.id, trackingNumber: orders.trackingNumber, zoneId: orders.zoneId, collectCents: orders.collectCents, lat: orders.lat, lng: orders.lng, status: orders.status, priority: orders.priority, promisedBy: orders.promisedBy };
+    const cols = {
+      id: orders.id, trackingNumber: orders.trackingNumber, zoneId: orders.zoneId, collectCents: orders.collectCents, lat: orders.lat, lng: orders.lng, status: orders.status, priority: orders.priority, promisedBy: orders.promisedBy,
+      confirmationStatus: orders.confirmationStatus, riskScore: orders.riskScore, metadata: orders.metadata,
+    };
     if (dto.orderIds?.length) {
       const rows = await this.db.select(cols).from(orders).where(inArray(orders.id, [...new Set(dto.orderIds)]));
       for (const id of new Set(dto.orderIds)) if (!rows.find((r) => r.id === id)) skipped.push({ orderId: id, reasons: ['NOT_FOUND'] });
@@ -185,6 +206,12 @@ export class AssignmentService {
         .limit(500);
     }
     pool.sort((a, b) => b.priority - a.priority || (a.promisedBy?.getTime() ?? Infinity) - (b.promisedBy?.getTime() ?? Infinity));
+    const plannable: typeof pool = [];
+    for (const o of pool) {
+      if (await this.integrityBlocked(o)) skipped.push({ orderId: o.id, trackingNumber: o.trackingNumber, reasons: ['CONFIRMATION_REQUIRED'] });
+      else plannable.push(o);
+    }
+    pool = plannable;
 
     const heroes = await this.candidates();
     const assignments: Array<{ orderId: string; trackingNumber: string; zoneCode: string; courier: Evaluation['courier']; score: number; collectCents: number }> = [];

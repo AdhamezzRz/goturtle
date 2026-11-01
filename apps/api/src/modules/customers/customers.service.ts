@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, gte, like, lte, or, sql } from 'drizzle-orm';
-import { normalizeEgyptPhone, reliabilityScore } from '@goturtle/shared';
+import { and, asc, count, desc, eq, gte, isNotNull, like, lte, or, sql } from 'drizzle-orm';
+import { normalizeEgyptPhone, reliabilityScore, scoreCodRisk } from '@goturtle/shared';
 import type { Db, DbOrTx } from '../../db/client';
-import { brands, customers, orders, zones } from '../../db/schema';
+import { brands, customerAddresses, customers, orders, zones } from '../../db/schema';
 import { InjectDb } from '../../core/database.module';
 import { AuditService } from '../../core/audit.service';
 import { DomainError, notFound } from '../../common/errors';
@@ -136,18 +136,71 @@ export class CustomersService {
     return row;
   }
 
-  async setBlocked(id: string, blocked: boolean, reason: string | undefined, p: Principal, meta: RequestMetaInfo) {
+  async setBlocked(id: string, blocked: boolean, reason: string | undefined, p: Principal, meta: RequestMetaInfo, requirePrepayment?: boolean) {
     const before = await this.get(id);
     if (before.isBlocked === blocked) {
       throw new DomainError(blocked ? 'ALREADY_BLOCKED' : 'NOT_BLOCKED', blocked ? 'Customer is already blocked' : 'Customer is not blocked', HttpStatus.CONFLICT);
     }
-    await this.db.update(customers).set({ isBlocked: blocked }).where(eq(customers.id, id));
+    const patch: Partial<typeof customers.$inferInsert> = blocked
+      ? { isBlocked: true, blockedReason: reason?.trim().slice(0, 300) || null, blockedAt: new Date(), ...(requirePrepayment !== undefined ? { requirePrepayment } : {}) }
+      : { isBlocked: false, blockedReason: null, blockedAt: null };
+    await this.db.update(customers).set(patch).where(eq(customers.id, id));
     await this.audit.record(
       p,
-      { action: blocked ? 'customer.block' : 'customer.unblock', entity: 'Customer', entityId: id, before: { isBlocked: before.isBlocked }, after: { isBlocked: blocked, reason: reason ?? null } },
+      {
+        action: blocked ? 'customer.block' : 'customer.unblock', entity: 'Customer', entityId: id,
+        before: { isBlocked: before.isBlocked, requirePrepayment: before.requirePrepayment },
+        after: { isBlocked: blocked, reason: reason ?? null, requirePrepayment: patch.requirePrepayment ?? before.requirePrepayment },
+      },
       meta,
     );
     return this.detail(id);
+  }
+
+  /** Network prepayment rule: COD orders to this phone are held until paid online. */
+  async setPrepayment(id: string, required: boolean, reason: string | undefined, p: Principal, meta: RequestMetaInfo) {
+    const before = await this.get(id);
+    if (before.requirePrepayment !== required) {
+      await this.db.update(customers).set({ requirePrepayment: required }).where(eq(customers.id, id));
+      await this.audit.record(
+        p,
+        { action: required ? 'customer.prepay_on' : 'customer.prepay_off', entity: 'Customer', entityId: id, before: { requirePrepayment: before.requirePrepayment }, after: { requirePrepayment: required, reason: reason ?? null } },
+        meta,
+      );
+    }
+    return this.detail(id);
+  }
+
+  /**
+   * Brand-safe recipient risk: only a level, score and coarse flags derived
+   * from the network history — never per-brand counts, names or other brands' orders.
+   */
+  async riskForPhone(rawPhone: string, codAmountCents = 0) {
+    const e164 = normalizeEgyptPhone(rawPhone);
+    if (!e164) throw new DomainError('INVALID_PHONE', 'Enter a valid Egyptian mobile number', HttpStatus.BAD_REQUEST);
+    const [c] = await this.db.select().from(customers).where(eq(customers.phone, e164)).limit(1);
+    const delivered = c?.deliveredOrders ?? 0;
+    const refused = c?.refusedOrders ?? 0;
+    const risk = scoreCodRisk({
+      codAmountCents, customerTotalOrders: c?.totalOrders ?? 0, customerDelivered: delivered, customerRefused: refused, isBlocked: c?.isBlocked ?? false,
+      isFirstOrder: !c, addressLength: 40, hasCoordinates: true, zoneTier: 'A',
+    });
+    const flags: string[] = [];
+    if (!c || delivered + refused === 0) flags.push('NEW_RECIPIENT');
+    if (refused > 0) flags.push(refused / (delivered + refused) >= 0.3 ? 'FREQUENT_REFUSALS' : 'PAST_REFUSAL');
+    if (delivered >= 3 && refused / (delivered + refused) < 0.1) flags.push('RELIABLE');
+    if (c?.isBlocked) flags.push('BLOCKLISTED');
+    if (c?.requirePrepayment) flags.push('PREPAY_ONLY');
+    let verifiedPinAvailable = false;
+    if (c) {
+      const [pin] = await this.db
+        .select({ id: customerAddresses.id })
+        .from(customerAddresses)
+        .where(and(eq(customerAddresses.customerId, c.id), eq(customerAddresses.isVerified, true), isNotNull(customerAddresses.lat)))
+        .limit(1);
+      verifiedPinAvailable = !!pin;
+    }
+    return { level: risk.level, score: risk.score, flags, requiresPrepayment: !!c?.requirePrepayment, verifiedPinAvailable };
   }
 
   // ----------------------------------------------------------- workflow helpers
