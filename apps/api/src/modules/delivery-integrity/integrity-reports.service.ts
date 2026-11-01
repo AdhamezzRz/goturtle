@@ -216,7 +216,7 @@ export class IntegrityReportsService {
 
   private search(q?: string): SQL | undefined {
     if (!q?.trim()) return undefined;
-    const phone = normalizeEgyptPhone(q);
+    const phone = /^\s*gt/i.test(q) ? null : normalizeEgyptPhone(q);
     if (phone) return or(eq(orders.recipientPhone, phone), eq(orders.recipientAltPhone, phone));
     const term = `%${likeEscape(q.trim())}%`;
     return or(like(orders.trackingNumber, term), like(orders.recipientName, term), like(orders.brandReference, term));

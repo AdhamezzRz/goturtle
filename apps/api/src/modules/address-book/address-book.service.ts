@@ -50,8 +50,12 @@ const PIN_EDITABLE: OrderStatus[] = ['CREATED', 'PICKUP_ASSIGNED', 'PICKED_UP', 
 const SOON_OUT: OrderStatus[] = ['PICKED_UP', 'RECEIVED_AT_HUB', 'ASSIGNED', 'FAILED_ATTEMPT', 'RESCHEDULED'];
 
 /** Normalised word set of an address (line + building number). */
+/** Generic words that say nothing about which address it is ("street", "شارع", "building" …). */
+const FILLER = new Set(['st', 'str', 'street', 'rd', 'road', 'ave', 'avenue', 'bldg', 'building', 'apt', 'flat', 'floor', 'no', 'num', 'number',
+  'شارع', 'ش', 'طريق', 'عماره', 'عمارة', 'برج', 'شقه', 'شقة', 'دور', 'رقم', 'مدخل', 'بجوار', 'امام', 'خلف']);
+
 export function addressTokens(line: string, building?: string | null): Set<string> {
-  return new Set(normalizeText(`${line} ${building ?? ''}`).split(' ').filter((w) => w.length > 1 || /\d/.test(w)));
+  return new Set(normalizeText(`${line} ${building ?? ''}`).split(' ').filter((w) => (w.length > 1 || /\d/.test(w)) && !FILLER.has(w)));
 }
 
 /** Jaccard similarity of two addresses' normalised tokens (0..1). */
@@ -125,57 +129,48 @@ export class AddressBookService implements OnModuleInit {
   /** Finds/creates the address-book row for an order inside a transaction (order row locked by the caller). */
   async upsertInTx(tx: DbOrTx, o: OrderRow, opts: { reusePin: boolean }): Promise<{ address: AddressRow; reused: boolean }> {
     const book = await tx.select().from(customerAddresses).where(eq(customerAddresses.customerId, o.customerId)).orderBy(desc(customerAddresses.lastUsedAt)).limit(50);
-    const input = { line: o.addressLine, building: o.building };
-    const sameZone = book.filter((a) => a.zoneId === o.zoneId);
-    let best: { row: AddressRow; score: number } | null = null;
-    for (const a of sameZone) {
-      const score = addressSimilarity(input, { line: a.addressLine, building: a.building });
-      if (!best || score > best.score) best = { row: a, score };
-    }
-    const now = new Date();
-    let address: AddressRow;
     if (o.customerAddressId) {
       const linked = book.find((a) => a.id === o.customerAddressId);
       if (linked) return { address: linked, reused: false };
     }
-    if (best && best.score >= SAME_ADDRESS) {
-      const a = best.row;
-      const patch: Partial<typeof customerAddresses.$inferInsert> = { usageCount: sql`${customerAddresses.usageCount} + 1` as unknown as number, lastUsedAt: now };
+    const input = { line: o.addressLine, building: o.building };
+    const scored = book
+      .filter((a) => a.zoneId === o.zoneId)
+      .map((a) => ({ row: a, score: addressSimilarity(input, { line: a.addressLine, building: a.building }) }))
+      .sort((x, y) => y.score - x.score || y.row.deliveredCount - x.row.deliveredCount);
+    const noPin = o.lat == null || o.lng == null;
+    const verifiedPin = (a: AddressRow) => a.isVerified && a.lat != null && a.lng != null;
+    // Same address; or, for an order without a pin, a close-enough address with a verified pin.
+    const match = scored.find((c) => c.score >= SAME_ADDRESS) ?? (opts.reusePin && noPin ? scored.find((c) => c.score >= REUSE_PIN && verifiedPin(c.row)) : undefined);
+    const now = new Date();
+    let address: AddressRow;
+    if (match) {
+      const a = match.row;
+      const patch: Record<string, unknown> = { usageCount: sql`${customerAddresses.usageCount} + 1`, lastUsedAt: now };
       for (const k of ['building', 'floor', 'apartment', 'landmark'] as const) if (!a[k] && o[k]) patch[k] = o[k];
-      if (a.lat == null && o.lat != null && o.lng != null) Object.assign(patch, { lat: o.lat, lng: o.lng });
+      if (a.lat == null && !noPin) Object.assign(patch, { lat: o.lat, lng: o.lng });
       await tx.update(customerAddresses).set(patch).where(eq(customerAddresses.id, a.id));
       address = { ...a, ...(patch as Partial<AddressRow>), usageCount: a.usageCount + 1 };
     } else {
       const id = newId();
-      const values: typeof customerAddresses.$inferInsert = {
+      await tx.insert(customerAddresses).values({
         id, customerId: o.customerId, addressLine: o.addressLine, building: o.building, floor: o.floor, apartment: o.apartment, landmark: o.landmark,
         zoneId: o.zoneId, lat: o.lat, lng: o.lng, isVerified: false, source: 'ORDER', usageCount: 1, lastUsedAt: now,
-      };
-      await tx.insert(customerAddresses).values(values);
+      });
       [address] = await tx.select().from(customerAddresses).where(eq(customerAddresses.id, id)).limit(1);
     }
 
-    // No pin on the order: reuse a verified pin of the same customer, same zone, close address.
+    // No pin on the order: copy the verified pin of the matched address.
     let reused = false;
-    let linkId = address.id;
-    if (opts.reusePin && (o.lat == null || o.lng == null)) {
-      const candidates = [address, ...sameZone.filter((a) => a.id !== address.id)]
-        .filter((a) => a.isVerified && a.lat != null && a.lng != null)
-        .map((a) => ({ a, score: a.id === address.id ? 1 : addressSimilarity(input, { line: a.addressLine, building: a.building }) }))
-        .filter((c) => c.score >= REUSE_PIN)
-        .sort((x, y) => y.score - x.score || y.a.deliveredCount - x.a.deliveredCount);
-      const pick = candidates[0]?.a;
-      if (pick) {
-        const res = await tx.update(orders).set({ lat: pick.lat, lng: pick.lng }).where(and(eq(orders.id, o.id), isNull(orders.lat)));
-        if ((res as unknown as [{ affectedRows: number }])[0]?.affectedRows === 1) {
-          reused = true;
-          linkId = pick.id;
-          await this.workflow.addNote(tx, o, SYSTEM_ACTOR, { reason: 'PIN_REUSED', note: 'Pin reused from a previous delivery', isPublic: false, metadata: { customerAddressId: pick.id } });
-        }
+    if (opts.reusePin && noPin && verifiedPin(address)) {
+      const res = await tx.update(orders).set({ lat: address.lat, lng: address.lng }).where(and(eq(orders.id, o.id), isNull(orders.lat)));
+      if ((res as unknown as [{ affectedRows: number }])[0]?.affectedRows === 1) {
+        reused = true;
+        await this.workflow.addNote(tx, o, SYSTEM_ACTOR, { reason: 'PIN_REUSED', note: 'Pin reused from a previous delivery', isPublic: false, metadata: { customerAddressId: address.id } });
       }
     }
-    await tx.update(orders).set({ customerAddressId: linkId }).where(eq(orders.id, o.id));
-    return { address: linkId === address.id ? address : (await tx.select().from(customerAddresses).where(eq(customerAddresses.id, linkId)).limit(1))[0], reused };
+    await tx.update(orders).set({ customerAddressId: address.id }).where(eq(orders.id, o.id));
+    return { address, reused };
   }
 
   private async maybeGeocode(o: OrderRow, address: AddressRow) {
@@ -275,7 +270,7 @@ export class AddressBookService implements OnModuleInit {
   // ------------------------------------------------------------------ location requests
 
   /** Job: one location_request per order without a pin, the day before / when it goes out. */
-  async requestMissingPins(now = new Date()): Promise<string> {
+  async requestMissingPins(now = new Date(), only?: string[]): Promise<string> {
     const s = await this.settings.get('integrity');
     if (!s.requestPinWhenMissing) return 'disabled';
     const tomorrow = addDays(cairoToday(now), 1);
@@ -289,6 +284,7 @@ export class AddressBookService implements OnModuleInit {
           gte(orders.createdAt, new Date(now.getTime() - 14 * 24 * 3_600_000)),
           or(eq(orders.status, 'OUT_FOR_DELIVERY'), and(inArray(orders.status, SOON_OUT), or(isNull(orders.scheduledDate), lte(orders.scheduledDate, tomorrow)))),
           sql`not exists (select 1 from ${notifications} n where n.orderId = ${orders.id} and n.template = 'location_request')`,
+          only?.length ? inArray(orders.id, only) : undefined,
         ),
       )
       .orderBy(asc(orders.createdAt))

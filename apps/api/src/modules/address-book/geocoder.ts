@@ -51,7 +51,8 @@ export class GoogleGeocoder implements Geocoder {
     if (opts.near) {
       // ±0.15° (~16 km) viewport around the zone centre biases the match without excluding others.
       const d = 0.15;
-      params.set('bounds', `${opts.near.lat - d},${opts.near.lng - d}|${opts.near.lat + d},${opts.near.lng + d}`);
+      const f = (n: number) => n.toFixed(6);
+      params.set('bounds', `${f(opts.near.lat - d)},${f(opts.near.lng - d)}|${f(opts.near.lat + d)},${f(opts.near.lng + d)}`);
     }
     const res = await fetchWithTimeout(`https://maps.googleapis.com/maps/api/geocode/json?${params}`, { timeoutMs: TIMEOUT_MS });
     if (!res.ok) throw new GeocoderError(`Google geocoding failed (${res.status}): ${snippet(res.text, 200)}`);
