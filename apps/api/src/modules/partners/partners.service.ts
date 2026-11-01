@@ -318,7 +318,7 @@ export class PartnersService implements OnModuleInit {
       eq(orders.status, 'RECEIVED_AT_HUB'),
       unservedOnly && served.length ? notInArray(orders.zoneId, served) : undefined,
       q.hubId ? eq(orders.hubId, q.hubId) : undefined,
-      q.governorate ? eq(governorates.code, q.governorate) : undefined,
+      q.governorate ? eq(governorates.code, q.governorate.toUpperCase()) : undefined,
       q.q ? or(eq(orders.trackingNumber, q.q.trim().toUpperCase()), like(orders.recipientName, `%${likeEscape(q.q)}%`)) : undefined,
     ];
     const where = and(...conds);

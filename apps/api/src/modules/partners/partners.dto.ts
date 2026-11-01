@@ -8,7 +8,7 @@ import { PageQuery } from '../../common/pagination';
 import { PARTNER_API_TYPES, type PartnerApiType } from './partner-adapters';
 
 export const PARTNER_CODE = /^[A-Z0-9]{2,12}$/;
-const GOV_CODE = /^[A-Z]{2,10}$/;
+const GOV_CODE = /^[A-Za-z]{2,10}$/;
 const URL_TEMPLATE = /^https:\/\/[^\s]+$/;
 
 export class CreatePartnerDto {
