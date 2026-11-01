@@ -17,13 +17,14 @@ import { CopyButton, SectionTitle, useLocations } from '../components/common';
 import { CodeBlock, LangTabs, SecretBox, snippets } from '../components/devtools';
 import type { ApiKey, Integration, WebhookDelivery, WebhookEndpoint } from '../components/types';
 import './i18n';
+import { MarketplaceConnectors } from '@/features/intake/connectors/MarketplaceConnectors';
 
-type Tab = 'keys' | 'webhooks' | 'stores' | 'docs';
+type Tab = 'keys' | 'webhooks' | 'stores' | 'marketplaces' | 'docs';
 
 export default function DevelopersPage() {
   const { t } = useI18n();
   const [f, setF] = useQueryState({ tab: 'keys' });
-  const tab = (['keys', 'webhooks', 'stores', 'docs'].includes(f.tab) ? f.tab : 'keys') as Tab;
+  const tab = (['keys', 'webhooks', 'stores', 'marketplaces', 'docs'].includes(f.tab) ? f.tab : 'keys') as Tab;
   return (
     <div>
       <PageHeader title={t('brand.nav.developers')} subtitle={t('brand.dev.subtitle')} />
@@ -35,12 +36,14 @@ export default function DevelopersPage() {
           { value: 'keys', label: t('brand.dev.tab.keys') },
           { value: 'webhooks', label: t('brand.dev.tab.webhooks') },
           { value: 'stores', label: t('brand.dev.tab.stores') },
+          { value: 'marketplaces', label: t('intake.mk.tab') },
           { value: 'docs', label: t('brand.dev.tab.docs') },
         ]}
       />
       {tab === 'keys' && <ApiKeys />}
       {tab === 'webhooks' && <Webhooks />}
       {tab === 'stores' && <Stores />}
+      {tab === 'marketplaces' && <MarketplaceConnectors />}
       {tab === 'docs' && <QuickStart />}
     </div>
   );
@@ -401,7 +404,7 @@ function Stores() {
   const { me } = useAuth();
   const qc = useQueryClient();
   const isOwner = me?.role === 'BRAND_OWNER';
-  const q = useQuery({ queryKey: ['integrations'], queryFn: () => api<Paginated<Integration>>('/integrations', { query: { pageSize: 50 } }) });
+  const q = useQuery({ queryKey: ['integrations'], queryFn: () => api<Paginated<Integration>>('/integrations', { query: { pageSize: 50 } }), select: (d) => ({ ...d, data: d.data.filter((c) => c.provider in PROVIDERS) }) });
   const [connect, setConnect] = useState(false);
   const [edit, setEdit] = useState<Integration | null>(null);
   const [setup, setSetup] = useState<Integration | null>(null);

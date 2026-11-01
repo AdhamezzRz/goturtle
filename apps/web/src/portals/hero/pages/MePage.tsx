@@ -17,6 +17,7 @@ import { clearLocationQueue } from '../lib/geo';
 import { uploadPhoto } from '../lib/media';
 import { useInstall } from '../lib/pwa';
 import type { HeroDocument, Profile } from '../types';
+import { PushToggle } from '@/features/intake/push/PushToggle';
 
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
 
@@ -91,6 +92,7 @@ export default function MePage() {
       <Documents p={p} />
 
       <SectionTitle>{t('hero.me.settings')}</SectionTitle>
+      <PushToggle className="mb-3" />
       <Settings onPassword={() => setPw(true)} onSignOut={() => setSignOut(true)} />
 
       <p className="mt-6 text-center text-xs text-ink-400">{t('hero.me.joined', { date: dateOnly(p.joinedAt) })} · {t('common.poweredBy')}</p>

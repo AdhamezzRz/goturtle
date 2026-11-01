@@ -10,6 +10,7 @@ import { errorMessage, useI18n } from '@/i18n';
 import { Avatar, Badge, Button, Card, ConfirmDialog, Field, Input } from '@/components/ui';
 import { Ltr, SectionTitle, Segmented } from '../components/common';
 import './i18n';
+import { PushToggle } from '@/features/intake/push/PushToggle';
 
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
 
@@ -114,6 +115,8 @@ export default function ProfilePage() {
           <div className="flex justify-end"><Button type="submit" loading={save.isPending} disabled={name.trim().length < 2}>{t('action.save')}</Button></div>
         </form>
       </Card>
+
+      <PushToggle />
 
       <Card>
         <SectionTitle icon={<KeyRound />} title={t('brand.profile.password')} subtitle={t('brand.profile.passwordHint')} />

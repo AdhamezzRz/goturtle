@@ -16,6 +16,7 @@ import { MAP_COLORS, OpsMap, type OpsMarker } from '../../components/opsa/OpsMap
 import type { OrderDetail, TicketRow } from '../../components/opsa/types';
 import { AssignHeroModal, CancelOrderDialog, ChangeStatusModal, EditOrderModal, Stars } from './OrderActions';
 import './i18n';
+import { PartnerHandoffPanel } from '@/features/intake/partners/PartnerHandoffPanel';
 
 type ModalKey = 'status' | 'assign' | 'cancel' | 'edit' | null;
 
@@ -90,6 +91,7 @@ export default function OrderDetailPage() {
           <RecipientCard o={o} />
           <MoneyCard o={o} />
           <LogisticsCard o={o} />
+          <PartnerHandoffPanel order={o} />
           <PackageCard o={o} />
         </div>
 

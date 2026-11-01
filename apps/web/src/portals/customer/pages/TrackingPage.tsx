@@ -16,6 +16,7 @@ import { Button, Field, Input, Modal, Select, Skeleton, Textarea } from '@/compo
 import { CustomerShell, Panel, useCustomerSession, usePublicSettings, VerifyPhone } from '../components';
 import type { TrackingData } from '../types';
 import '../i18n';
+import { PartnerTrackingBlock } from '@/features/intake/partners/PartnerTrackingBlock';
 
 const LiveHeroMap = lazy(() => import('../LiveHeroMap'));
 const PinMap = lazy(() => import('@/portals/brand/components/PinMap'));
@@ -146,6 +147,7 @@ export default function TrackingPage() {
             </Panel>
           )}
 
+          <PartnerTrackingBlock tracking={d} />
           {d.verified && d.details && <DeliveryInfo d={d} />}
 
           </div>
