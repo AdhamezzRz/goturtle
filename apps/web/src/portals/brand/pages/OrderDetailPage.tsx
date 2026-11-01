@@ -21,6 +21,7 @@ import { CreateTicketModal } from '../components/tickets';
 import type { OrderDetail } from '../components/types';
 import { BrandOrderIntegrity } from '@/features/integrity/brand/BrandIntegrity';
 import './i18n';
+import { BrandOrderMoneyPanel } from '@/features/money/orders/OrderMoneyPanels';
 
 const PinMap = lazy(() => import('../components/PinMap'));
 
@@ -261,6 +262,7 @@ export default function OrderDetailPage() {
             </div>
             {o.settlementId && <p className="mt-3 rounded-lg bg-turtle-50 px-3 py-2 text-xs text-turtle-800 dark:bg-turtle-950 dark:text-turtle-200">{t('brand.order.inSettlement')} · <Link className="font-semibold underline" to={`/brand/wallet/settlements/${o.settlementId}`}>{t('action.view')}</Link></p>}
           </Card>
+          <BrandOrderMoneyPanel order={o} />
 
           {/* Package */}
           <Card>

@@ -12,6 +12,7 @@ import { Gauge, Ltr, Money, OfflineBlock, Panel, RefreshButton, SectionTitle, Sh
 import { useHandovers, useHeroMutation, useInvalidateHero, useWallet } from '../lib/queries';
 import { ageLabel } from '../lib/util';
 import type { Handover, Wallet } from '../types';
+import { DigitalCollectionsSection } from '@/features/money/hero/DigitalCollections';
 
 const METHODS: Array<{ value: HandoverMethod; icon: ReactNode }> = [
   { value: 'CASH_AT_HUB', icon: <Building /> },
@@ -108,6 +109,8 @@ export default function WalletPage() {
           </p>
         </>
       )}
+
+      <DigitalCollectionsSection />
 
       <SectionTitle>{t('hero.wallet.history')}</SectionTitle>
       {!handovers.data ? (

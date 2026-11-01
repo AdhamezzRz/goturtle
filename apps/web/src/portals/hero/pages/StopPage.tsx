@@ -23,6 +23,7 @@ import { nextStop } from '../lib/agenda';
 import { addDays, directionsLink, minutesLabel, telLink, whatsappLink } from '../lib/util';
 import type { DeliverBody, FailBody, StopDetail } from '../types';
 import { FailIntegrityPanel, HeroCallAction } from '@/features/integrity/hero/HeroCalls';
+import { useDoorPayment } from '@/features/money/hero/DoorPayment';
 
 const StopMiniMap = lazy(() => import('../components/StopMiniMap'));
 
@@ -364,6 +365,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
   const [note, setNote] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const sig = useRef<SignatureHandle>(null);
+  const door = useDoorPayment(stop, open);
 
   useEffect(() => {
     if (!open) return;
@@ -384,7 +386,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
   }, [cooldown]);
 
   const entered = due > 0 ? parseEgp(amount) : 0;
-  const amountOk = due === 0 || entered === due;
+  const amountOk = due === 0 || entered === due || door.isDigital;
   const otpOk = !stop.otpRequired || /^\d{4,8}$/.test(otp.trim());
 
   const resend = useHeroMutation(() => api<{ sent: boolean; expiresInMinutes: number; devCode?: string }>(`/hero/tasks/orders/${stop.id}/resend-otp`, { method: 'POST' }), {
@@ -405,6 +407,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
         signatureUrl,
         receivedBy: receivedBy.trim() || undefined,
         note: note.trim() || undefined,
+        ...door.body,
         ...(await currentPosition()),
       };
       return api<StopDetail>(`/hero/tasks/orders/${stop.id}/deliver`, { method: 'POST', body });
@@ -423,7 +426,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
       },
     });
 
-  const canSubmit = online && amountOk && otpOk && !photoBusy;
+  const canSubmit = online && amountOk && otpOk && !photoBusy && door.ready;
 
   return (
     <Sheet
@@ -447,6 +450,8 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
               <p className="text-sm font-semibold text-ink-700 dark:text-ink-200">{t('hero.deliver.due')}</p>
               <Money cents={due} className="font-display text-2xl font-extrabold text-sand-800 dark:text-sand-300" />
             </div>
+            {door.picker && <div className="mt-3">{door.picker}</div>}
+            {!door.isDigital && <>
             <Field label={t('hero.deliver.collected')} className="mt-3" error={amount && !amountOk ? t('hero.deliver.mismatch', { amount: money(due) }) : undefined}>
               {(id) => (
                 <div className="flex gap-2">
@@ -467,6 +472,7 @@ function DeliverSheet({ open, onClose, stop, onDone }: { open: boolean; onClose:
               )}
             </Field>
             <p className="mt-2 text-xs text-ink-500">{t('hero.deliver.countHint')}</p>
+            </>}
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-2xl bg-turtle-50 p-3 text-sm font-semibold text-turtle-800 dark:bg-turtle-950 dark:text-turtle-200">

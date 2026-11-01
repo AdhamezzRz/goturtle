@@ -17,6 +17,7 @@ import type { OrderDetail, TicketRow } from '../../components/opsa/types';
 import { AssignHeroModal, CancelOrderDialog, ChangeStatusModal, EditOrderModal, Stars } from './OrderActions';
 import { OrderIntegrityPanel } from '@/features/integrity/ops/OrderIntegrityPanel';
 import './i18n';
+import { OpsOrderMoneyPanel } from '@/features/money/orders/OrderMoneyPanels';
 
 type ModalKey = 'status' | 'assign' | 'cancel' | 'edit' | null;
 
@@ -92,12 +93,13 @@ export default function OrderDetailPage() {
         <div className="space-y-6 lg:order-2">
           <RecipientCard o={o} />
           <MoneyCard o={o} />
+          <OpsOrderMoneyPanel orderId={o.id} />
           <LogisticsCard o={o} />
           <PackageCard o={o} />
         </div>
 
         {/* main column */}
-        <div className="space-y-6 lg:order-1 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:order-1 lg:col-span-2">
           <OrderMap o={o} />
           <SectionCard title={t('ops.orders.detail.timeline')}>
             <Timeline

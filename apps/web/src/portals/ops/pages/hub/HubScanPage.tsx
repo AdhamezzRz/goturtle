@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, ArrowRightLeft, Camera, CheckCircle2, Clock, Inbox, Package, RotateCcw, ScanLine, Truck, Undo2, User, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Camera, CheckCircle2, Clock, Inbox, Package, RotateCcw, Scale, ScanLine, Truck, Undo2, User, XCircle } from 'lucide-react';
 import { isValidTrackingNumber, normalizeTrackingNumber, toLatinDigits, type OrderStatus } from '@goturtle/shared';
 import { ApiError, api, type Paginated } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -13,8 +13,9 @@ import { Mono, NoAccess, Segmented } from '../../components/opsa/ui';
 import { useLookupOptions } from '../../components/opsa/lookups';
 import type { RunsheetRow } from '../../components/opsa/types';
 import './i18n';
+import { WeighMode } from '@/features/money/ops/WeighMode';
 
-type Mode = 'inbound' | 'outbound' | 'return';
+type Mode = 'inbound' | 'outbound' | 'return' | 'weigh';
 
 interface InboundResult {
   action: 'RECEIVED' | 'TRANSFERRED' | 'RETURN_RECEIVED' | 'ALREADY_SCANNED';
@@ -173,11 +174,13 @@ export default function HubScanPage() {
             { value: 'inbound', label: <span className="flex items-center gap-1.5"><Inbox className="h-4 w-4" />{t('ops.hub.mode.inbound')}</span> },
             { value: 'outbound', label: <span className="flex items-center gap-1.5"><Truck className="h-4 w-4" />{t('ops.hub.mode.outbound')}</span> },
             { value: 'return', label: <span className="flex items-center gap-1.5"><Undo2 className="h-4 w-4" />{t('ops.hub.mode.return')}</span> },
+            { value: 'weigh', label: <span className="flex items-center gap-1.5"><Scale className="h-4 w-4" />{t('money.weigh.mode')}</span> },
           ]}
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-5">
+      {mode === 'weigh' && <WeighMode />}
+      <div className={cn('grid gap-5 lg:grid-cols-5', mode === 'weigh' && 'hidden')}>
         <div className="min-w-0 space-y-4 lg:col-span-3">
           <div className="rounded-3xl border border-ink-100 bg-white p-4 shadow-card dark:border-ink-800 dark:bg-ink-900 sm:p-6">
             <p className="mb-4 text-sm text-ink-500">{t(`ops.hub.modeHint.${mode}`)}</p>

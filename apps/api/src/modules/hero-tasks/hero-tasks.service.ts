@@ -202,6 +202,8 @@ export class HeroTasksService {
       lat: dto.lat, lng: dto.lng, note: dto.note ?? null,
       delivery: { collectedCents: dto.collectedCents, podPhotoUrl: dto.podPhotoUrl ?? null, signatureUrl: dto.signatureUrl ?? null, receivedBy: dto.receivedBy ?? null },
       metadata: o.deliveryOtpRequired ? { otpVerified: true } : null,
+      // Validated and normalised by the money-programs collection guard.
+      extensions: { collection: { method: dto.collectionMethod ?? 'CASH', reference: dto.collectionReference?.trim() || null } },
     });
     return this.stop(orderId, actor.courierId!);
   }
