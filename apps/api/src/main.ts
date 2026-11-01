@@ -71,7 +71,7 @@ function setupSwagger(app: INestApplication) {
         'Webhooks are signed: `X-GoTurtle-Signature: t=<unix>,v1=<hex hmac-sha256(secret, t + "." + body)>`.',
       ].join('\n'),
     )
-    .setVersion('1.0')
+    .setVersion('1.1')
     .addBearerAuth()
     .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'apiKey')
     .build();

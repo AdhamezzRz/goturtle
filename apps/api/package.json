@@ -1,6 +1,6 @@
 {
   "name": "@goturtle/api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "GoTurtle logistics ERP \u2014 REST API (NestJS + Drizzle + MySQL/MariaDB). Also serves the web portals in production.",
   "main": "dist/main.js",

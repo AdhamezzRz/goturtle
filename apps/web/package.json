@@ -1,6 +1,6 @@
 {
   "name": "@goturtle/web",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "GoTurtle portals: Ops (company), Brand, Hero (courier PWA) and Client tracking",

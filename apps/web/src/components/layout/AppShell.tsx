@@ -76,7 +76,7 @@ export function AppShell({ nav, children, title, profilePath, notificationsPath,
           );
         })}
       </div>
-      <div className="border-t border-white/10 px-5 py-4 text-xs text-ink-400">{t('common.poweredBy')} · v1.0</div>
+      <div className="border-t border-white/10 px-5 py-4 text-xs text-ink-400">{t('common.poweredBy')} · v1.1</div>
     </nav>
   );
 

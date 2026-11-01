@@ -1,7 +1,7 @@
 {
   "name": "goturtle",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "GoTurtle — last-mile logistics ERP for Egypt (Ops, Brand, Hero and Client portals) in one Node.js app",
   "workspaces": ["packages/shared", "apps/web", "apps/api"],
   "engines": { "node": ">=20.11" },
