@@ -31,3 +31,52 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(req).catch(() => caches.match('/').then((r) => r || caches.match('/hero'))));
   }
 });
+
+// ---------------------------------------------------------------- Web Push
+// Payload (from the API's PushService): { title, body, url, tag, icon, badge, ts }.
+
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  const title = data.title || 'GoTurtle';
+  const text = `${title}${data.body || ''}`;
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    // Arabic messages render right-to-left on every OS.
+    dir: /[؀-ۿ]/.test(text) ? 'rtl' : 'auto',
+    lang: /[؀-ۿ]/.test(text) ? 'ar' : 'en',
+    tag: data.tag || undefined,
+    renotify: !!data.tag,
+    timestamp: data.ts || Date.now(),
+    data: { url: typeof data.url === 'string' && data.url.startsWith('/') ? data.url : '/' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      // A tab already on the target, else any tab of the app (navigated there), else a new window.
+      const exact = windows.find((w) => w.url === target);
+      if (exact) return exact.focus();
+      const any = windows.find((w) => new URL(w.url).origin === self.location.origin);
+      if (any) return any.focus().then((w) => (w && 'navigate' in w ? w.navigate(target) : undefined));
+      return self.clients.openWindow(target);
+    }),
+  );
+});
+
+// The browser rotated the subscription: subscribe again with the same server key.
+// The app re-registers the new endpoint with the API the next time it opens.
+self.addEventListener('pushsubscriptionchange', (event) => {
+  const key = event.oldSubscription && event.oldSubscription.options ? event.oldSubscription.options.applicationServerKey : null;
+  if (key) event.waitUntil(self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+});

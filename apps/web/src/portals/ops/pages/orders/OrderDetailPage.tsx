@@ -18,6 +18,7 @@ import { AssignHeroModal, CancelOrderDialog, ChangeStatusModal, EditOrderModal, 
 import { OrderIntegrityPanel } from '@/features/integrity/ops/OrderIntegrityPanel';
 import './i18n';
 import { OpsOrderMoneyPanel } from '@/features/money/orders/OrderMoneyPanels';
+import { PartnerHandoffPanel } from '@/features/intake/partners/PartnerHandoffPanel';
 
 type ModalKey = 'status' | 'assign' | 'cancel' | 'edit' | null;
 
@@ -95,6 +96,7 @@ export default function OrderDetailPage() {
           <MoneyCard o={o} />
           <OpsOrderMoneyPanel orderId={o.id} />
           <LogisticsCard o={o} />
+          <PartnerHandoffPanel order={o} />
           <PackageCard o={o} />
         </div>
 

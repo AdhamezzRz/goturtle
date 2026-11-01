@@ -24,6 +24,9 @@ export const TEMPLATE_NAMES = [
   'location_request', 'location_ack', 'inbound_help', 'prepay_required', 'attempt_disputed',
   // v1.1 money programs & quality
   'collection_rejected', 'advance_requested', 'advance_update', 'claim_filed', 'claim_update', 'weight_adjusted', 'weight_dispute_resolved',
+  // Web Push (title + short body shown on the lock screen)
+  'push_runsheet_dispatched', 'push_pickup_assigned', 'push_stop_added', 'push_attempt_failed', 'push_order_returned',
+  'push_settlement_paid', 'push_attempt_disputed', 'push_ticket_sla', 'push_test',
 ] as const;
 export type TemplateName = (typeof TEMPLATE_NAMES)[number];
 
@@ -261,6 +264,51 @@ export const TEMPLATES: Record<TemplateName, TemplateDef> = {
     ar: { title: 'نتيجة اعتراض الوزن {{tn}}', body: 'اعتراضك على وزن {{tn}}: {{decision}}. {{note}}' },
     en: { title: 'Weight dispute {{tn}} resolved', body: 'Your weight dispute on {{tn}}: {{decision}}. {{note}}' },
     params: ['tn', 'decision', 'note'],
+  },
+  push_runsheet_dispatched: {
+    ar: { title: 'خط سيرك جاهز 🚚', body: 'خط السير {{code}} اتصرف: {{count}} شحنة. افتح التطبيق وابدأ.' },
+    en: { title: 'Your run is ready 🚚', body: 'Runsheet {{code}} is dispatched: {{count}} stops. Open the app to start.' },
+    params: ['code', 'count'],
+  },
+  push_pickup_assigned: {
+    ar: { title: 'استلام جديد', body: 'اتعينلك {{count}} شحنة للاستلام من التجار.' },
+    en: { title: 'New pickup', body: '{{count}} parcels were assigned to you for pickup.' },
+    params: ['count'],
+  },
+  push_stop_added: {
+    ar: { title: 'شحنة جديدة على خطك', body: 'اتضاف {{count}} توقف لخط سيرك ({{tn}}).' },
+    en: { title: 'New stop on your run', body: '{{count}} stop(s) added to your runsheet ({{tn}}).' },
+    params: ['count', 'tn'],
+  },
+  push_attempt_failed: {
+    ar: { title: 'محاولة توصيل فاشلة', body: '{{tn}}: {{reason}}. راجع الطلب وتواصل مع العميل.' },
+    en: { title: 'Delivery attempt failed', body: '{{tn}}: {{reason}}. Check the order and contact the customer.' },
+    params: ['tn', 'reason'],
+  },
+  push_order_returned: {
+    ar: { title: 'شحنة مرتجعة', body: 'الشحنة {{tn}} رجعت لمخزنك.' },
+    en: { title: 'Parcel returned', body: 'Parcel {{tn}} was returned to you.' },
+    params: ['tn'],
+  },
+  push_settlement_paid: {
+    ar: { title: 'تم تحويل فلوسك 💸', body: 'التسوية {{code}} بقيمة {{amount}} اتحولت.' },
+    en: { title: 'Payout sent 💸', body: 'Settlement {{code}} of {{amount}} has been paid.' },
+    params: ['code', 'amount'],
+  },
+  push_attempt_disputed: {
+    ar: { title: 'اعتراض على محاولة توصيل', body: 'تذكرة {{code}} على الشحنة {{tn}} — راجع إثبات المحاولة.' },
+    en: { title: 'Delivery attempt disputed', body: 'Ticket {{code}} on {{tn}} — review the attempt proof.' },
+    params: ['code', 'tn'],
+  },
+  push_ticket_sla: {
+    ar: { title: 'تذكرة تجاوزت الوقت', body: '{{code}}: {{subject}}' },
+    en: { title: 'Ticket SLA breached', body: '{{code}}: {{subject}}' },
+    params: ['code', 'subject'],
+  },
+  push_test: {
+    ar: { title: 'الإشعارات شغالة ✅', body: 'هتوصلك تنبيهات {{company}} على الجهاز ده.' },
+    en: { title: 'Notifications are on ✅', body: 'You will get {{company}} alerts on this device.' },
+    params: ['company'],
   },
 };
 

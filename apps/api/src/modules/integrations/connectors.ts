@@ -12,6 +12,8 @@ export interface ConnectorCredentials {
   webhookSecret?: string;
   consumerKey?: string;
   consumerSecret?: string;
+  /** Zid: the `Authorization` bearer token (the manager token goes in accessToken). */
+  authorizationToken?: string;
 }
 
 export interface ConnectorSettings {

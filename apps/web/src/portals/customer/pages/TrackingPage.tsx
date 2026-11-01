@@ -17,6 +17,7 @@ import { CustomerShell, Panel, useCustomerSession, usePublicSettings, VerifyPhon
 import type { TrackingData } from '../types';
 import { TrackingIntegrityCards } from '@/features/integrity/customer/TrackingIntegrityCards';
 import '../i18n';
+import { PartnerTrackingBlock } from '@/features/intake/partners/PartnerTrackingBlock';
 
 const LiveHeroMap = lazy(() => import('../LiveHeroMap'));
 const PinMap = lazy(() => import('@/portals/brand/components/PinMap'));
@@ -148,6 +149,7 @@ export default function TrackingPage() {
             </Panel>
           )}
 
+          <PartnerTrackingBlock tracking={d} />
           {d.verified && d.details && <DeliveryInfo d={d} />}
 
           </div>

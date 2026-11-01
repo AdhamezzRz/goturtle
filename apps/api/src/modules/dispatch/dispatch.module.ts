@@ -5,12 +5,13 @@ import { DispatchController, RunsheetsController } from './dispatch.controller';
 import { DispatchService } from './dispatch.service';
 import { AssignmentService } from './assignment.service';
 import { RunsheetsService } from './runsheets.service';
+import { RoutingService } from './routing/routing.service';
 
 /** Hub scans, hero auto-assignment, runsheets, the live control tower and the SLA job. */
 @Module({
   imports: [NetworkModule, OrdersModule],
   controllers: [DispatchController, RunsheetsController],
-  providers: [DispatchService, AssignmentService, RunsheetsService],
-  exports: [DispatchService, AssignmentService, RunsheetsService],
+  providers: [DispatchService, AssignmentService, RunsheetsService, RoutingService],
+  exports: [DispatchService, AssignmentService, RunsheetsService, RoutingService],
 })
 export class DispatchModule {}

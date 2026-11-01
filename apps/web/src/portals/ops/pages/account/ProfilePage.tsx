@@ -10,6 +10,7 @@ import { errorMessage, useI18n } from '@/i18n';
 import { Avatar, Badge, Button, ConfirmDialog, Field, Input, PageHeader, Select } from '@/components/ui';
 import { InfoRow, Section, UploadButton, useHubName, type Errors } from '@/portals/ops/components/opsb';
 import './i18n';
+import { PushToggle } from '@/features/intake/push/PushToggle';
 
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
 
@@ -36,6 +37,7 @@ export default function ProfilePage() {
               <p className="mt-2 text-xs text-ink-400">{t('ops.account.profile.permissions', { n: num(me.permissions?.length ?? 0) })}</p>
             </div>
           </Section>
+          <PushToggle compact />
           <SessionsCard />
         </div>
       </div>

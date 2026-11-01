@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Banknote, Bell, Building2, Palette, Phone, Search, Settings2, ShieldCheck } from 'lucide-react';
+import { Banknote, Bell, Building2, Palette, Phone, Search, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import { ago, parseEgp } from '@/lib/format';
@@ -13,6 +13,8 @@ import './i18n';
 import { IntegritySettingsForm } from '@/features/integrity/ops/IntegritySettingsForm';
 import type { IntegritySettings } from '@/features/integrity/types';
 import { FinanceSettingsForm } from '@/features/money/ops/FinanceSettingsForm';
+import { PlatformSettingsForm } from '@/features/intake/settings/PlatformSettingsForm';
+import type { PlatformSettings } from '@/features/intake/types';
 
 type Company = { name: string; legalName: string; taxId: string; address: string; supportPhone: string; supportWhatsapp: string; email: string; logoUrl: string };
 type Notifs = { customerSmsOnCreated: boolean; onOutForDelivery: boolean; onDelivered: boolean; onFailed: boolean; onReturned: boolean; channel: 'SMS' | 'WHATSAPP' };
@@ -21,7 +23,7 @@ type Branding = { primaryColor: string };
 type SettingRow<T> = { key: string; description: string; value: T; defaults: T; isDefault: boolean; updatedAt: string | null; updatedBy: { id: string; name: string } | null };
 type PublicSettings = { company: Pick<Company, 'name' | 'supportPhone' | 'supportWhatsapp' | 'logoUrl' | 'email'>; branding: Branding };
 
-const GROUPS = ['company', 'notifications', 'operations', 'branding', 'integrity', 'finance'] as const;
+const GROUPS = ['company', 'notifications', 'operations', 'branding', 'integrity', 'finance', 'platform'] as const;
 type Group = (typeof GROUPS)[number];
 
 export default function SettingsPage() {
@@ -40,7 +42,7 @@ function Inner() {
   const onCompany = useCallback((c: Partial<Company>) => setDraftBrand((d) => ({ ...d, company: c })), []);
   const onBranding = useCallback((b: Partial<Branding>) => setDraftBrand((d) => ({ ...d, branding: b })), []);
   const row = <T,>(k: Group) => q.data?.find((r) => r.key === k) as SettingRow<T> | undefined;
-  const icons: Record<Group, ReactNode> = { company: <Building2 className="h-4 w-4" />, notifications: <Bell className="h-4 w-4" />, operations: <Settings2 className="h-4 w-4" />, branding: <Palette className="h-4 w-4" />, integrity: <ShieldCheck className="h-4 w-4" />, finance: <Banknote className="h-4 w-4" /> };
+  const icons: Record<Group, ReactNode> = { company: <Building2 className="h-4 w-4" />, notifications: <Bell className="h-4 w-4" />, operations: <Settings2 className="h-4 w-4" />, branding: <Palette className="h-4 w-4" />, integrity: <ShieldCheck className="h-4 w-4" />, finance: <Banknote className="h-4 w-4" />, platform: <Sparkles className="h-4 w-4" /> };
   const tab = (GROUPS as readonly string[]).includes(s.tab) ? (s.tab as Group) : 'company';
   return (
     <div>
@@ -58,6 +60,7 @@ function Inner() {
             {tab === 'branding' && row<Branding>('branding') && <BrandingForm row={row<Branding>('branding')!} onDraft={onBranding} />}
             {tab === 'integrity' && row<IntegritySettings>('integrity') && <IntegritySettingsForm row={row<IntegritySettings>('integrity')!} />}
             {tab === 'finance' && row('finance') && <FinanceSettingsForm row={row('finance') as Parameters<typeof FinanceSettingsForm>[0]['row']} />}
+            {tab === 'platform' && row<PlatformSettings>('platform') && <PlatformSettingsForm row={row<PlatformSettings>('platform')!} />}
           </div>
           <PublicPreview draft={draftBrand} />
         </div>

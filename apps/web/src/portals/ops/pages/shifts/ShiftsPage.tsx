@@ -18,6 +18,7 @@ import {
 import { GenerateModal, NewShiftModal, TemplateModal, useTemplates, useWeekdays } from './ShiftModals';
 import type { Coverage, ShiftTemplate } from './types';
 import './i18n';
+import { ForecastBanner } from '@/features/intake/forecast/ForecastBanner';
 
 export default function ShiftsPage() {
   return (
@@ -30,8 +31,9 @@ export default function ShiftsPage() {
 function ShiftsInner() {
   const { t } = useI18n();
   const { can } = useAuth();
-  const [s, setS] = useQueryState({ tab: 'calendar', week: weekStart(cairoToday()), hubId: '', status: '', courierId: '' });
-  const [gen, setGen] = useState<{ templateId?: string } | null>(null);
+  const [s, setS] = useQueryState({ tab: 'calendar', week: weekStart(cairoToday()), hubId: '', status: '', courierId: '', generate: '' });
+  // ?generate=<templateId|new> (forecast staffing shortcut) opens the generator for that week.
+  const [gen, setGen] = useState<{ templateId?: string } | null>(() => (s.generate && can('shifts.manage') ? { templateId: s.generate === 'new' ? undefined : s.generate } : null));
   const [create, setCreate] = useState<string | null>(null);
   const manage = can('shifts.manage');
   return (
@@ -46,6 +48,7 @@ function ShiftsInner() {
           </>
         )}
       />
+      <ForecastBanner hubId={s.hubId || undefined} />
       <Tabs
         className="mb-5"
         value={s.tab}
@@ -55,7 +58,7 @@ function ShiftsInner() {
       {s.tab === 'calendar' && <WeekCalendar week={s.week} hubId={s.hubId} status={s.status} courierId={s.courierId} onChange={setS} onCreate={manage ? (d) => setCreate(d) : undefined} />}
       {s.tab === 'templates' && <Templates onGenerate={(id) => setGen({ templateId: id })} />}
       {s.tab === 'coverage' && <CoverageView week={s.week} hubId={s.hubId} onChange={setS} />}
-      <GenerateModal open={!!gen} onClose={() => setGen(null)} templateId={gen?.templateId} from={s.week} />
+      <GenerateModal open={!!gen} onClose={() => { setGen(null); if (s.generate) setS({ generate: '' }); }} templateId={gen?.templateId} from={s.week} />
       <NewShiftModal open={!!create} onClose={() => setCreate(null)} date={create ?? undefined} />
     </div>
   );

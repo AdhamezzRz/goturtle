@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, notInArray } from 'drizzle-orm';
 import * as s from '../src/db/schema';
 import type { TestContext } from './helpers';
 import { bootTestApp, courierByCode, createTestBrand, hubId, orderBody } from './ops-factories';
@@ -7,7 +7,9 @@ const API = '/api/v1';
 
 /**
  * Assignment engine & dispatch. Maadi is covered by HR-00004 (primary) and
- * HR-00005 (primary); Helwan only by HR-00005. No other test file uses them.
+ * HR-00005 (primary); Helwan only by HR-00005. Heroes that other test files
+ * add to these zones are parked (status SUSPENDED) for the duration of this file
+ * and restored afterwards, so the assertions do not depend on file order.
  */
 describe('Dispatch (e2e)', () => {
   let t: TestContext;
@@ -15,6 +17,7 @@ describe('Dispatch (e2e)', () => {
   let hero4: string;
   let hero5: string;
   const limits = new Map<string, number>();
+  const parked = new Map<string, (typeof s.couriers.$inferSelect)['status']>();
 
   beforeAll(async () => {
     t = await bootTestApp();
@@ -24,10 +27,19 @@ describe('Dispatch (e2e)', () => {
     hero4 = c4.id;
     hero5 = c5.id;
     limits.set(hero4, c4.cashLimitCents).set(hero5, c5.cashLimitCents);
+    const zoneRows = await t.db.select({ id: s.zones.id }).from(s.zones).where(inArray(s.zones.code, ['CAI-MAADI', 'CAI-HELWAN']));
+    const others = await t.db
+      .selectDistinct({ id: s.couriers.id, status: s.couriers.status })
+      .from(s.courierZones)
+      .innerJoin(s.couriers, eq(s.couriers.id, s.courierZones.courierId))
+      .where(and(inArray(s.courierZones.zoneId, zoneRows.map((z) => z.id)), notInArray(s.couriers.id, [hero4, hero5]), eq(s.couriers.status, 'ACTIVE')));
+    for (const o of others) parked.set(o.id, o.status);
+    if (parked.size) await t.db.update(s.couriers).set({ status: 'SUSPENDED' }).where(inArray(s.couriers.id, [...parked.keys()]));
     await t.db.update(s.couriers).set({ availability: 'ONLINE', lastLat: 29.961, lastLng: 31.258, lastSeenAt: new Date() }).where(eq(s.couriers.id, hero4));
   });
   afterAll(async () => {
     for (const [id, cashLimitCents] of limits) await t.db.update(s.couriers).set({ cashLimitCents }).where(eq(s.couriers.id, id));
+    for (const [id, status] of parked) await t.db.update(s.couriers).set({ status }).where(eq(s.couriers.id, id));
     await t.close();
   });
 
