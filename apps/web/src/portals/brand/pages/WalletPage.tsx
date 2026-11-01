@@ -12,6 +12,7 @@ import { Button, Card, DataTable, EmptyState, Input, PageHeader, Pagination, Sta
 import { Money, Stat } from '../components/common';
 import type { FinanceSummary, Settlement, Statement, StatementLine } from '../components/types';
 import './i18n';
+import { CashSpeedCards } from '@/features/money/brand/CashSpeed';
 
 const SETTLEMENT_TONE = { DRAFT: 'info', APPROVED: 'progress', PAID: 'success', CANCELLED: 'neutral' } as const;
 
@@ -68,6 +69,8 @@ export default function WalletPage() {
           hint={s?.lastPaidSettlement ? dateOnly(s.lastPaidSettlement.paidAt) : t('brand.wallet.noPaidYet')}
         />
       </div>
+
+      <CashSpeedCards />
 
       <Tabs value={f.tab} onChange={(v) => setF({ tab: v })} tabs={[{ value: 'statement', label: t('brand.wallet.statement') }, { value: 'settlements', label: t('brand.wallet.settlements') }]} />
       {f.tab === 'settlements' ? <SettlementsList page={Number(f.page) || 1} onPage={(p) => setF({ page: String(p) })} /> : <StatementView from={f.from} to={f.to} page={Number(f.page) || 1} setF={setF} />}

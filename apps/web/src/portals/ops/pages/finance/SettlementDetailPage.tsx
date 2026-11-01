@@ -14,10 +14,12 @@ import type { OrderStatus } from '@goturtle/shared';
 import type { SettlementRow } from './SettlementsPage';
 import './i18n';
 import '../brands/i18n';
+import { SettlementAdjustments, type AdjustmentLine } from '@/features/money/ops/SettlementAdjustments';
 
 type SettlementDetail = SettlementRow & {
   brand: SettlementRow['brand'] & { payoutDetails: Record<string, string> | null; legalName: string | null; taxId: string | null };
   lines: Array<{ id: string; trackingNumber: string; brandReference: string | null; status: string; recipientName: string; codAmountCents: number; collectedCents: number; deliveredAt: string | null; returnedAt: string | null; codCents: number; feesCents: number; netCents: number }>;
+  adjustmentLines?: AdjustmentLine[];
 };
 
 export default function SettlementDetailPage() {
@@ -121,6 +123,7 @@ function Inner() {
         </Section>
       </div>
 
+      <SettlementAdjustments lines={s.adjustmentLines} totalCents={s.adjustmentsCents} />
       <Section title={t('ops.settlements.d.lines', { n: String(s.lines.length) })}>
         <DataTable
           columns={columns}

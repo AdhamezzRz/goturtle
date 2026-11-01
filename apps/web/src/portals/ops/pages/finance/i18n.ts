@@ -1,5 +1,6 @@
 import { registerDictionary } from '@/i18n';
 import '@/portals/ops/components/opsb/i18n';
+import '@/features/money/i18n';
 
 registerDictionary({
   // Ledger & reports

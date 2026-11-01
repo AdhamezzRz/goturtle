@@ -16,6 +16,7 @@ import { MAP_COLORS, OpsMap, type OpsMarker } from '../../components/opsa/OpsMap
 import type { OrderDetail, TicketRow } from '../../components/opsa/types';
 import { AssignHeroModal, CancelOrderDialog, ChangeStatusModal, EditOrderModal, Stars } from './OrderActions';
 import './i18n';
+import { OpsOrderMoneyPanel } from '@/features/money/orders/OrderMoneyPanels';
 
 type ModalKey = 'status' | 'assign' | 'cancel' | 'edit' | null;
 
@@ -89,6 +90,7 @@ export default function OrderDetailPage() {
         <div className="space-y-6 lg:order-2">
           <RecipientCard o={o} />
           <MoneyCard o={o} />
+          <OpsOrderMoneyPanel orderId={o.id} />
           <LogisticsCard o={o} />
           <PackageCard o={o} />
         </div>
