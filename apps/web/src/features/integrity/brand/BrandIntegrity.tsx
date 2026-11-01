@@ -123,7 +123,7 @@ export function BrandOrderIntegrity({ orderId }: { orderId: string }) {
             <h3 className="font-semibold text-ink-900 dark:text-white">
               {prepayHold ? t('integrity.brand.prepayTitle') : waiting || unconfirmedHold ? t('integrity.brand.unconfirmedTitle') : t('integrity.brand.cardTitle')}
             </h3>
-            <ConfirmationBadge status={d.confirmation.status} />
+            {d.confirmation.status !== 'NOT_REQUIRED' && <ConfirmationBadge status={d.confirmation.status} />}
           </div>
           <p className="mt-1 text-sm text-ink-500">{prepayHold ? t('integrity.brand.prepayHint') : waiting || unconfirmedHold ? t('integrity.brand.unconfirmedHint') : null}</p>
           {prepayHold && can('orders.update') && (

@@ -98,6 +98,7 @@ registerDictionary({
   'integrity.emptyDisputes': { en: 'No disputes', ar: 'مفيش اعتراضات' },
   'integrity.emptyDisputesHint': { en: 'When a customer says a failed attempt never happened it lands here with the evidence.', ar: 'لما العميل يقول إن المحاولة الفاشلة محصلتش هتظهر هنا مع الأدلة.' },
   'integrity.disputeStatus': { en: 'Dispute status', ar: 'حالة الاعتراض' },
+  'integrity.disputedAt': { en: 'Disputed {t}', ar: 'اعترض {t}' },
   'integrity.evidence': { en: 'Evidence', ar: 'الأدلة' },
   'integrity.distance': { en: 'Distance from the pin', ar: 'المسافة من اللوكيشن' },
   'integrity.geofence': { en: 'Allowed: {m} m', ar: 'المسموح: {m} م' },

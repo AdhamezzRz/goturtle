@@ -123,7 +123,7 @@ function DisputeCard({ d, geofence, onResolve }: { d: DisputeRow; geofence: numb
               {d.note && <p className="text-sm text-ink-600 dark:text-ink-300"><span className="font-semibold">{t('integrity.heroNote')}:</span> {d.note}</p>}
             </div>
           )}
-          {d.disputedAt && <p className="text-xs text-ink-500">{t('integrity.disputeStatus')}: {ago(d.disputedAt)}</p>}
+          {d.disputedAt && <p className="text-xs text-ink-500">{t('integrity.disputedAt', { t: ago(d.disputedAt) })}</p>}
         </div>
       </div>
     </article>

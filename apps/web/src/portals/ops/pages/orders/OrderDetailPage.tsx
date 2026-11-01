@@ -87,7 +87,7 @@ export default function OrderDetailPage() {
 
       <OrderIntegrityPanel orderId={o.id} recipientName={o.recipientName} />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-3">
         {/* side column (first on phones) */}
         <div className="space-y-6 lg:order-2">
           <RecipientCard o={o} />
