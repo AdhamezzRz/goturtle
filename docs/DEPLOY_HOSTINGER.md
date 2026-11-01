@@ -43,12 +43,25 @@ hPanel → your app → **Environment variables** (you can import `apps/api/.env
 | `UPLOAD_DIR` | `/home/u123456/goturtle-uploads` | **outside** the app folder so redeploys keep POD photos & documents |
 | `DB_POOL_SIZE` | `5` | keep small on shared plans |
 
-Optional: SMS/WhatsApp/email providers, Paymob, see `apps/api/.env.example`.
+Optional (each feature works without them and switches on when set — details in `apps/api/.env.example` and [ROADMAP.md](ROADMAP.md)):
+
+| Variable(s) | Turns on |
+|---|---|
+| `SMS_PROVIDER`, `WHATSAPP_PROVIDER` + provider keys | real SMS / WhatsApp messages (default `console` only logs them) |
+| `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | customer WhatsApp replies — webhook `https://your-domain/api/v1/integrations/inbound/whatsapp` |
+| `SMS_INBOUND_SECRET` | customer SMS replies — `https://your-domain/api/v1/integrations/inbound/sms?key=…` |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PROXY_SERVICE_SID` | masked hero ↔ customer calls with automatic call logs |
+| `PAYMENT_PROVIDER=paymob`, `PAYMOB_*` | online payment links (before delivery and at the door) |
+| `GEOCODER=google\|mapbox`, `GOOGLE_MAPS_API_KEY` / `MAPBOX_TOKEN` | address geocoding |
+| `ROUTING_PROVIDER=osrm\|google`, `OSRM_URL` | traffic-aware route optimisation (default: distance estimate) |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | push notifications — generate once with `node -e "console.log(require('web-push').generateVAPIDKeys())"` |
+
+Business rules for these features (confirmation thresholds, geofence, fees, claim caps, weight tolerance, forecast events…) are edited in **Ops → Settings** (Integrity, Finance, Platform tabs) — no redeploy needed.
 
 Migrations run automatically on boot (`DB_AUTO_MIGRATE=true`). The first boot creates the chart of accounts and the bootstrap super admin.
 
 ## 4. Background jobs (cron)
-Hostinger does not keep background workers alive, so GoTurtle also runs its jobs (webhook retries, SMS queue, shift attendance, SLA checks, settlements) when its cron URL is called.
+Hostinger does not keep background workers alive, so GoTurtle also runs its jobs (webhook retries, SMS queue, delivery confirmations & holds, location requests, shift attendance, SLA checks, settlements) when its cron URL is called.
 
 hPanel → **Advanced → Cron Jobs** → every minute (`* * * * *`):
 ```

@@ -29,3 +29,11 @@ Everything below is **already designed into the code** (adapters, settings, env 
 - Dynamic pricing by zone demand and time slots.
 - Brand-facing NPS / delivery experience scores.
 - Multi-city expansion (Alexandria, Delta) with hub-to-hub line hauls.
+
+## Engineering follow-ups (no external dependency)
+- Partner carriers: move per-partner fees out of the encrypted credentials into `carrier_partners.feeCents/returnFeeCents` and link the virtual hero by a `courierId` column; index `orders.orderLinkId`.
+- Claims: optional per-plan liability cap (today: declared value, else the Finance default cap).
+- Weight re-pricing: when the recipient pays the fees, raise the amount to collect instead of charging the brand wallet.
+- Forecast: widen the 80 % interval when demand is trending (point forecast MAPE ≈ 7 % on synthetic history; interval coverage too narrow).
+- Web Push: re-register a rotated subscription from the service worker itself (today it re-registers the next time the profile/Me page opens).
+- Partner carriers by API: the adapter interface and a 15-minute polling job exist; only the manual adapter is implemented.
