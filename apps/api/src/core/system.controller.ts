@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { Controller, ForbiddenException, Get, HttpCode, Post, Query, UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -10,6 +11,16 @@ import { config } from '../config';
 import type { Db } from '../db/client';
 import { InjectDb } from './database.module';
 import { JobsService } from './jobs.service';
+
+/** Version from apps/api/package.json (works when started with plain `node server.js`, not only via npm). */
+const APP_VERSION: string = (() => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return (require(join(__dirname, '..', '..', 'package.json')) as { version: string }).version;
+  } catch {
+    return process.env.npm_package_version ?? 'unknown';
+  }
+})();
 
 const startedAt = new Date();
 
@@ -65,7 +76,7 @@ export class SystemController {
     return {
       status: database === 'ok' ? 'ok' : 'degraded',
       database,
-      version: process.env.npm_package_version ?? '1.0.0',
+      version: APP_VERSION,
       uptimeSeconds: Math.round((Date.now() - startedAt.getTime()) / 1000),
       time: new Date().toISOString(),
     };
