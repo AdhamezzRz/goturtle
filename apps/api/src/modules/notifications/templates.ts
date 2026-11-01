@@ -19,6 +19,9 @@ export const TEMPLATE_NAMES = [
   'user_invited', 'temp_password', 'settlement_paid',
   'ticket_created', 'ticket_reply', 'ticket_assigned', 'ticket_sla_breached',
   'brand_registered', 'brand_approved', 'webhook_disabled', 'payment_link', 'integration_error',
+  // delivery integrity & address intelligence
+  'confirm_delivery', 'confirmation_ack', 'reschedule_ack', 'decline_ack', 'attempt_verify', 'attempt_ack', 'dispute_ack',
+  'location_request', 'location_ack', 'inbound_help', 'prepay_required', 'attempt_disputed',
 ] as const;
 export type TemplateName = (typeof TEMPLATE_NAMES)[number];
 
@@ -159,6 +162,67 @@ export const TEMPLATES: Record<TemplateName, TemplateDef> = {
     ar: { title: 'مشكلة في ربط {{provider}}', body: 'طلب {{reference}} من {{shop}} لم يتم إنشاؤه: {{error}}' },
     en: { title: '{{provider}} sync problem', body: 'Order {{reference}} from {{shop}} was not created: {{error}}' },
     params: ['provider', 'reference', 'shop', 'error'],
+  },
+  // ---------------------------------------------------------------- delivery integrity & address intelligence
+  confirm_delivery: {
+    ar: { title: 'أكد استلام شحنتك', body: '{{brand}}: شحنتك {{tn}} ({{amount}}) جاهزة. رد 1 للتأكيد، 2 لتغيير اليوم، 3 للإلغاء. أو: {{link}}' },
+    en: { title: 'Confirm your delivery', body: '{{brand}}: parcel {{tn}} ({{amount}}) is ready. Reply 1 confirm, 2 change day, 3 cancel. Or: {{link}}' },
+    params: ['brand', 'tn', 'amount', 'link'],
+  },
+  confirmation_ack: {
+    ar: { title: 'تم التأكيد', body: 'شكراً! تم تأكيد شحنتك {{tn}} وهنبلغك لما تخرج للتوصيل.' },
+    en: { title: 'Confirmed', body: 'Thanks! Parcel {{tn}} is confirmed. We will tell you when it is out for delivery.' },
+    params: ['tn'],
+  },
+  reschedule_ack: {
+    ar: { title: 'تم تغيير الموعد', body: 'تمام، شحنتك {{tn}} هتوصل يوم {{date}}. لتغيير اليوم: {{link}}' },
+    en: { title: 'New delivery day', body: 'Done, parcel {{tn}} will arrive on {{date}}. To change the day: {{link}}' },
+    params: ['tn', 'date', 'link'],
+  },
+  decline_ack: {
+    ar: { title: 'تم إلغاء الاستلام', body: 'تم تسجيل رفضك لشحنتك {{tn}} وهنبلغ {{brand}}.' },
+    en: { title: 'Delivery cancelled', body: 'We recorded that you do not want parcel {{tn}}. We will let {{brand}} know.' },
+    params: ['tn', 'brand'],
+  },
+  attempt_verify: {
+    ar: { title: 'محاولة توصيل', body: 'المندوب {{hero}} حاول يوصل شحنتك {{tn}} الساعة {{time}} ({{reason}}). رد 1 لو صحيح، 2 لو مش صحيح: {{link}}' },
+    en: { title: 'Delivery attempt', body: 'Hero {{hero}} tried to deliver {{tn}} at {{time}} ({{reason}}). Reply 1 if correct, 2 if not: {{link}}' },
+    params: ['hero', 'tn', 'time', 'reason', 'link'],
+  },
+  attempt_ack: {
+    ar: { title: 'شكراً لردك', body: 'شكراً، تم تسجيل ردك على محاولة توصيل {{tn}}. حدد موعد جديد: {{link}}' },
+    en: { title: 'Thanks for your reply', body: 'Thanks, we noted your reply about {{tn}}. Pick a new time: {{link}}' },
+    params: ['tn', 'link'],
+  },
+  dispute_ack: {
+    ar: { title: 'تم استلام شكوتك', body: 'آسفين! فتحنا شكوى {{code}} عن محاولة توصيل {{tn}} وهنراجعها بسرعة ونوصلها لك.' },
+    en: { title: 'We are on it', body: 'Sorry! Complaint {{code}} about the attempt on {{tn}} is open. We will review it and re-deliver.' },
+    params: ['code', 'tn'],
+  },
+  location_request: {
+    ar: { title: 'ابعت موقعك', body: 'عشان شحنتك {{tn}} توصل أسرع ابعت لوكيشن واتساب أو حدد مكانك: {{link}}' },
+    en: { title: 'Share your location', body: 'Help us deliver {{tn}} faster: send a WhatsApp location or drop your pin: {{link}}' },
+    params: ['tn', 'link'],
+  },
+  location_ack: {
+    ar: { title: 'تم حفظ موقعك', body: 'شكراً! حفظنا موقعك لشحنة {{tn}}.' },
+    en: { title: 'Location saved', body: 'Thanks! We saved your location for {{tn}}.' },
+    params: ['tn'],
+  },
+  inbound_help: {
+    ar: { title: 'محتاجين توضيح', body: 'مفهمناش ردك. لشحنة {{tn}} رد برقم من الاختيارات أو افتح: {{link}}' },
+    en: { title: 'Please choose an option', body: 'We did not understand your reply about {{tn}}. Reply with an option number or open: {{link}}' },
+    params: ['tn', 'link'],
+  },
+  prepay_required: {
+    ar: { title: 'الشحنة {{tn}} محتاجة دفع مسبق', body: 'المستلم {{phone}} عالي المخاطرة في الدفع عند الاستلام. ابعت له لينك دفع أو حوّل الطلب لمدفوع مسبقاً عشان نشحنه.' },
+    en: { title: 'Prepayment needed for {{tn}}', body: 'Recipient {{phone}} is high risk for cash on delivery. Send a payment link or switch the order to prepaid to ship it.' },
+    params: ['tn', 'phone'],
+  },
+  attempt_disputed: {
+    ar: { title: 'العميل اعترض على محاولة توصيل', body: '{{tn}}: العميل بيقول إن محاولة المندوب {{hero}} غير صحيحة. التذكرة {{code}}.' },
+    en: { title: 'Customer disputed an attempt', body: '{{tn}}: the customer says the attempt by {{hero}} did not happen. Ticket {{code}}.' },
+    params: ['tn', 'hero', 'code'],
   },
 };
 

@@ -15,6 +15,7 @@ import { errorMessage, useI18n } from '@/i18n';
 import { Button, Field, Input, Modal, Select, Skeleton, Textarea } from '@/components/ui';
 import { CustomerShell, Panel, useCustomerSession, usePublicSettings, VerifyPhone } from '../components';
 import type { TrackingData } from '../types';
+import { TrackingIntegrityCards } from '@/features/integrity/customer/TrackingIntegrityCards';
 import '../i18n';
 
 const LiveHeroMap = lazy(() => import('../LiveHeroMap'));
@@ -101,6 +102,7 @@ export default function TrackingPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div className="space-y-4">
           <StatusHero d={d} />
+          <TrackingIntegrityCards tn={tn} />
 
           {d.status === 'OUT_FOR_DELIVERY' && (
             d.heroLocation ? (

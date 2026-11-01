@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  Building2, CircleAlert, Clock, Copy, Hand, KeyRound, MapPin, MessageCircle, Navigation, Package, PackageCheck, PenLine, Phone, Play, Send, ShieldCheck, Store,
+  Building2, CircleAlert, Clock, Copy, Hand, KeyRound, MapPin, MessageCircle, Navigation, Package, PackageCheck, PenLine, Play, Send, ShieldCheck, Store,
   TriangleAlert, Undo2, Warehouse, X,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,6 +22,7 @@ import { uploadPhoto } from '../lib/media';
 import { nextStop } from '../lib/agenda';
 import { addDays, directionsLink, minutesLabel, telLink, whatsappLink } from '../lib/util';
 import type { DeliverBody, FailBody, StopDetail } from '../types';
+import { FailIntegrityPanel, HeroCallAction } from '@/features/integrity/hero/HeroCalls';
 
 const StopMiniMap = lazy(() => import('../components/StopMiniMap'));
 
@@ -130,7 +131,7 @@ export default function StopPage() {
 
       {/* Contact */}
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <BigAction href={telLink(s.recipient.phone)} icon={<Phone />} label={t('action.call')} tone="green" />
+        <HeroCallAction stop={s} />
         <BigAction
           href={whatsappLink(s.recipient.phone, { recipient: s.recipient.name, hero: me?.name.split(' ')[0] ?? '', brand: brandName, trackingNumber: s.trackingNumber })}
           icon={<MessageCircle />}
@@ -612,6 +613,8 @@ function FailSheet({ open, onClose, stop, onDone }: { open: boolean; onClose: ()
             ))}
           </div>
         </div>
+
+        <FailIntegrityPanel stop={stop} reason={reason} error={fail.error} />
 
         {willReturn && reason && (
           <div className="flex gap-2 rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-800 ring-1 ring-red-200 dark:bg-red-950 dark:text-red-200 dark:ring-red-900">

@@ -6,6 +6,7 @@ import { cairoToday } from '../src/db/helpers';
 import { CoreEvents, type OtpRequestedEvent } from '../src/core/events';
 import type { TestContext } from './helpers';
 import { bootTestApp, courierByCode, createTestBrand, hubId, ledgerOf, orderBody, randomPhone, type Agent } from './ops-factories';
+import { logSpacedCalls } from './integrity-factories';
 
 const API = '/api/v1';
 
@@ -179,6 +180,7 @@ describe('Order lifecycle (e2e)', () => {
 
     await toHub(order.id);
     const rs1 = await dispatchRunsheet(hero1Id, [order.id]);
+    await logSpacedCalls(t, order.id, hero1Id); // delivery integrity: "unreachable" needs logged calls
     const f1 = await hero.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_UNREACHABLE', note: 'Phone off', lat: 30.05, lng: 31.34 });
     expect(f1.status).toBe(200);
     expect(f1.body.status).toBe('FAILED_ATTEMPT');
@@ -192,7 +194,8 @@ describe('Order lifecycle (e2e)', () => {
     expect((await dispatcher.post(`${API}/runsheets/${rs1.id}/close`).send({})).body.reconciliation.backAtHub).toBe(1);
 
     await dispatchRunsheet(hero1Id, [order.id]);
-    const f2 = await hero.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_NOT_PRESENT', note: 'Nobody home' });
+    await logSpacedCalls(t, order.id, hero1Id);
+    const f2 = await hero.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_NOT_PRESENT', note: 'Nobody home', lat: 30.05, lng: 31.34 });
     expect(f2.body.status).toBe('RETURN_PENDING');
     const detail = (await ops.get(`${API}/orders/${order.id}`)).body;
     const auto = detail.timeline.find((e: { status: string }) => e.status === 'RETURN_PENDING');
@@ -229,7 +232,8 @@ describe('Order lifecycle (e2e)', () => {
     const hero2 = await t.as('hero2');
     const hero1 = await t.as('hero1');
     expect((await hero1.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_REFUSED' })).status).toBe(404);
-    const res = await hero2.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_REFUSED', note: 'Did not order it' });
+    await logSpacedCalls(t, order.id, hero2Id, 1); // no pin on the order: one logged call proves contact
+    const res = await hero2.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_REFUSED', note: 'Did not order it', lat: 30.03, lng: 31.47 });
     expect(res.body.status).toBe('RETURN_PENDING');
     const [c] = await t.db.select().from(s.customers).where(eq(s.customers.phone, `+20${phone.slice(1)}`));
     expect(c.refusedOrders).toBe(1);

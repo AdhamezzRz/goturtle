@@ -3,7 +3,7 @@ import type { INestApplicationContext } from '@nestjs/common';
 import { and, count, eq, inArray, sql } from 'drizzle-orm';
 import { ROLE_PERMISSIONS, type FailureReason, type ServiceLevel } from '@goturtle/shared';
 import type { Db } from '../client';
-import { brandLocations, brands, courierZones, couriers, ledgerEntries, ledgerTransactions, orderEvents, orders, users, zones } from '../schema';
+import { brandLocations, brands, callLogs, courierZones, couriers, ledgerEntries, ledgerTransactions, orderEvents, orders, users, zones } from '../schema';
 import { DB } from '../../core/database.module';
 import { cairoDateTime, cairoToday } from '../helpers';
 import type { ActorContext } from '../../common/actor';
@@ -281,6 +281,8 @@ export async function seedOperationsDemo(app: INestApplicationContext): Promise<
           continue;
         }
         if (idx === 1 && chance(0.5)) {
+          // Delivery integrity: "unreachable" needs logged calls (spaced a few minutes apart) before it is accepted.
+          await db.insert(callLogs).values([12, 6].map((m) => ({ orderId: o.id, courierId: heroId, provider: 'direct', status: 'NO_ANSWER' as const, startedAt: addHours(now, -m / 60), endedAt: addHours(now, -m / 60) })));
           await workflow.transition(o.id, 'FAILED_ATTEMPT', heroActor(heroId), { failure: { reason: 'CUSTOMER_UNREACHABLE' }, lat: o.lat, lng: o.lng });
           stats.failed++;
           continue;

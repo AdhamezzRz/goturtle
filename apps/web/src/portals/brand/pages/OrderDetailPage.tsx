@@ -19,6 +19,7 @@ import { copyText, CopyButton, Ltr, Money, nameOf, Row, SectionTitle } from '../
 import { ProgressSteps } from '../components/orders';
 import { CreateTicketModal } from '../components/tickets';
 import type { OrderDetail } from '../components/types';
+import { BrandOrderIntegrity } from '@/features/integrity/brand/BrandIntegrity';
 import './i18n';
 
 const PinMap = lazy(() => import('../components/PinMap'));
@@ -107,6 +108,8 @@ export default function OrderDetailPage() {
           {o.canCancel && can('orders.cancel') && <Button variant="danger" icon={<Ban className="h-4 w-4" />} onClick={() => setCancelOpen(true)}>{t('brand.order.cancel')}</Button>}
         </div>
       </div>
+
+      <BrandOrderIntegrity orderId={o.id} />
 
       {/* Status hero */}
       <Card className="overflow-hidden" padded={false}>

@@ -5,6 +5,7 @@ import { addDays } from '../src/modules/orders/ops-kit';
 import { cairoToday } from '../src/db/helpers';
 import type { TestContext } from './helpers';
 import { bearer, bootTestApp, courierByCode, createTestBrand, customerToken, customerTokenFor, hubId, orderBody, randomPhone, tokenFor } from './ops-factories';
+import { logSpacedCalls } from './integrity-factories';
 
 const API = '/api/v1';
 
@@ -119,7 +120,8 @@ describe('Tracking (e2e)', () => {
     const rs = (await d.post(`${API}/runsheets`).send({ courierId: hero6, orderIds: [order.id] })).body;
     await d.post(`${API}/runsheets/${rs.id}/dispatch`).send({});
     const heroAgent = bearer(t, await tokenFor(t, (await courierByCode(t, 'HR-00006')).userId, 'COURIER'));
-    expect((await heroAgent.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_NOT_PRESENT' })).body.status).toBe('FAILED_ATTEMPT');
+    await logSpacedCalls(t, order.id, hero6); // delivery integrity: "not present" needs logged calls
+    expect((await heroAgent.post(`${API}/hero/tasks/orders/${order.id}/fail`).send({ reason: 'CUSTOMER_NOT_PRESENT', lat: 30.0385, lng: 31.2120 })).body.status).toBe('FAILED_ATTEMPT');
     const next = addDays(cairoToday(), 1);
     const again = await cust.post(`${API}/track/${order.trackingNumber}/reschedule`).send({ date: next });
     expect(again.body.status).toBe('RESCHEDULED');

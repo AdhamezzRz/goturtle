@@ -15,6 +15,7 @@ import { errorMessage, useI18n } from '@/i18n';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Skeleton, Switch, Textarea } from '@/components/ui';
 import { copyText, Money, nameOf, Row, Segmented, SectionTitle, tomorrowCairo, useCanCreate, useLocations, useMyBrand, useZones } from '../components/common';
 import type { DetectZoneResult, OrderDetail, QuoteResult, RateCard } from '../components/types';
+import { RecipientInsights } from '@/features/integrity/brand/BrandIntegrity';
 import './i18n';
 
 const PinMap = lazy(() => import('../components/PinMap'));
@@ -203,6 +204,7 @@ export default function NewOrderPage() {
                 {(id) => <Input id={id} name="altPhone" dir="ltr" type="tel" inputMode="tel" maxLength={20} {...bind('altPhone')} invalid={!!err('altPhone')} />}
               </Field>
             </div>
+            <RecipientInsights phone={f.phone} codCents={codCents} onUseAddress={(a) => setF((s) => ({ ...s, line: a.addressLine, building: a.building ?? '', floor: a.floor ?? '', apartment: a.apartment ?? '', landmark: a.landmark ?? '', zoneId: a.zone?.id ?? s.zoneId, manualZone: !!a.zone }))} />
           </Card>
 
           {/* Address */}
