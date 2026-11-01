@@ -15,6 +15,7 @@ import { CallButton, CopyButton, Gauge, InfoRow, LinkButton, Mono, NoAccess, Pho
 import { MAP_COLORS, OpsMap, type OpsMarker } from '../../components/opsa/OpsMap';
 import type { OrderDetail, TicketRow } from '../../components/opsa/types';
 import { AssignHeroModal, CancelOrderDialog, ChangeStatusModal, EditOrderModal, Stars } from './OrderActions';
+import { OrderIntegrityPanel } from '@/features/integrity/ops/OrderIntegrityPanel';
 import './i18n';
 
 type ModalKey = 'status' | 'assign' | 'cancel' | 'edit' | null;
@@ -83,6 +84,8 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <OrderIntegrityPanel orderId={o.id} recipientName={o.recipientName} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* side column (first on phones) */}

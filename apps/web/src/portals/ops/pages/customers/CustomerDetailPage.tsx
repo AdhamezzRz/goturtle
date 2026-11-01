@@ -11,6 +11,7 @@ import { errorMessage, useI18n } from '@/i18n';
 import { Avatar, Badge, Button, ConfirmDialog, DataTable, ErrorState, Field, Skeleton, StatusBadge, Textarea } from '@/components/ui';
 import { CallButton, Gauge, LinkButton, MiniStat, Mono, NoAccess, PhoneLink, SectionCard } from '../../components/opsa/ui';
 import type { CustomerRow } from '../../components/opsa/types';
+import { CustomerIntegrity } from '@/features/integrity/ops/CustomerIntegrity';
 import '../orders/i18n';
 import './i18n';
 
@@ -102,6 +103,8 @@ export default function CustomerDetailPage() {
           </div>
         </SectionCard>
       </div>
+
+      <CustomerIntegrity customerId={c.id} />
 
       <SectionCard title={t('ops.customers.d.history')} padded={false} actions={<LinkButton to={`/ops/orders?customer=${c.id}`} icon={<PackageSearch />}>{t('ops.customers.d.allOrders')}</LinkButton>}>
         <div className="p-0 [&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none">
