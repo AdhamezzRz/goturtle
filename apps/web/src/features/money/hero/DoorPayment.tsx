@@ -146,7 +146,7 @@ function Destination({ title, value, due, missing, qr }: { title: string; value:
       )}
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold text-sky-900 dark:text-sky-200">{title}</p>
-        <p className="mt-0.5 break-all font-mono text-base font-bold text-ink-900 dark:text-white"><Ltr>{value}</Ltr></p>
+        <p className="mt-0.5 break-all font-mono text-sm font-bold text-ink-900 dark:text-white sm:text-base"><Ltr>{value}</Ltr></p>
         <p className="mt-0.5 text-xs text-sky-900/80 dark:text-sky-200/80">{t('money.door.exactly')} <Amount cents={due} className="font-bold" /></p>
       </div>
       <Button variant="outline" size="sm" className="h-11 shrink-0" icon={<Copy className="h-4 w-4" />} aria-label={t('action.copy')} onClick={() => void copy(value, t('action.copied'))}>

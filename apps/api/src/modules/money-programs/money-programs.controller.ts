@@ -44,6 +44,13 @@ export class CollectionsController {
   }
 
   @Access({ actors: ['staff'], permissions: ['finance.read'] })
+  @Get('orders/:orderId')
+  @ApiOperation({ summary: 'How an order was paid at the door: { collection } (null for cash / not delivered)' })
+  async forOrder(@Param('orderId') orderId: string) {
+    return { collection: await this.collections.find(orderId) };
+  }
+
+  @Access({ actors: ['staff'], permissions: ['finance.read'] })
   @Get(':orderId')
   get(@Param('orderId') orderId: string) {
     return this.collections.get(orderId);

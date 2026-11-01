@@ -169,9 +169,15 @@ export class CollectionsService implements OnModuleInit {
   }
 
   async get(orderId: string) {
+    const found = await this.find(orderId);
+    if (!found) throw notFound('Collection', orderId);
+    return found;
+  }
+
+  /** The order's digital collection, or null (cash, prepaid or not delivered yet). */
+  async find(orderId: string) {
     const [row] = await this.baseSelect().where(and(eq(orders.id, orderId), DIGITAL)).limit(1);
-    if (!row) throw notFound('Collection', orderId);
-    return this.present(row);
+    return row ? this.present(row) : null;
   }
 
   /** Transfer found on the bank statement (or gateway report): clearing → bank. */

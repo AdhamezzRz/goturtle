@@ -96,7 +96,7 @@ export default function OrderDetailPage() {
         </div>
 
         {/* main column */}
-        <div className="space-y-6 lg:order-1 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:order-1 lg:col-span-2">
           <OrderMap o={o} />
           <SectionCard title={t('ops.orders.detail.timeline')}>
             <Timeline

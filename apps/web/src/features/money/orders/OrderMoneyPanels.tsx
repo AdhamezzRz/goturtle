@@ -18,7 +18,7 @@ const noRetryOn404 = (count: number, err: unknown) => !(err instanceof ApiError 
 
 function Panel({ icon, title, children, action }: { icon: ReactNode; title: ReactNode; children: ReactNode; action?: ReactNode }) {
   return (
-    <Card>
+    <Card className="min-w-0 break-words">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-display text-base font-bold text-ink-900 dark:text-white"><span className="text-ink-400 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>{title}</h3>
         {action}
@@ -81,7 +81,12 @@ export function OpsOrderMoneyPanel({ orderId }: { orderId: string }) {
   const { t } = useI18n();
   const { can } = useAuth();
   const qc = useQueryClient();
-  const collection = useQuery({ queryKey: ['finance', 'collections', 'order', orderId], queryFn: () => api<CollectionRow>(`/finance/collections/${orderId}`), retry: noRetryOn404, enabled: can('finance.read') });
+  const collection = useQuery({
+    queryKey: ['finance', 'collections', 'order', orderId],
+    queryFn: () => api<{ collection: CollectionRow | null }>(`/finance/collections/orders/${orderId}`),
+    retry: noRetryOn404,
+    enabled: can('finance.read'),
+  });
   const weight = useWeight(orderId);
   const claims = useOrderClaims(orderId);
   const [resolve, setResolve] = useState<'ACCEPTED' | 'REVERSED' | null>(null);
@@ -92,7 +97,7 @@ export function OpsOrderMoneyPanel({ orderId }: { orderId: string }) {
     onError: (e) => toast.error(errorMessage(e)),
   });
   const w = weight.data;
-  const c = collection.data;
+  const c = collection.data?.collection ?? null;
   const list = claims.data?.data ?? [];
   const canResolve = can('tickets.manage') || can('finance.manage');
   return (
