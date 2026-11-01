@@ -177,6 +177,12 @@ export async function seedOperationsDemo(app: INestApplicationContext): Promise<
     return pickedAt;
   }
 
+  /**
+   * History must be clearly in the past: live hero actions (within the last minute)
+   * need GPS + call proof under the delivery-integrity rules; back-dated ones are exempt.
+   */
+  const settled = (d: Date) => minDate(d, addHours(now, -0.1));
+
   // ------------------------------------------------------------------ history
   for (let dayAgo = 20; dayAgo >= 1; dayAgo--) {
     const day = dayOffset(dayAgo);
@@ -202,7 +208,7 @@ export async function seedOperationsDemo(app: INestApplicationContext): Promise<
         const refused = o.customer.refuser || roll > 0.93;
         const failFirst = !refused && roll > 0.82;
         if (refused) {
-          await workflow.transition(o.ref.id, 'FAILED_ATTEMPT', hero, { at: addHours(outAt, 2), note: 'رفض الاستلام', failure: { reason: 'CUSTOMER_REFUSED' } });
+          await workflow.transition(o.ref.id, 'FAILED_ATTEMPT', hero, { at: settled(addHours(outAt, 2)), note: 'رفض الاستلام', failure: { reason: 'CUSTOMER_REFUSED' } });
           // The workflow auto-moves refused parcels to RETURN_PENDING; take it back to the brand.
           const after = addHours(outAt, 26);
           if (after < now) {
@@ -214,7 +220,7 @@ export async function seedOperationsDemo(app: INestApplicationContext): Promise<
         }
         let deliverAt = addHours(outAt, rand() * 5 + 0.5);
         if (failFirst) {
-          await workflow.transition(o.ref.id, 'FAILED_ATTEMPT', hero, { at: addHours(outAt, 1.5), failure: { reason: pick(FAILURES) } });
+          await workflow.transition(o.ref.id, 'FAILED_ATTEMPT', hero, { at: settled(addHours(outAt, 1.5)), failure: { reason: pick(FAILURES) } });
           stats.failed++;
           const retry = addHours(outAt, 24);
           if (retry > now) {
@@ -268,6 +274,11 @@ export async function seedOperationsDemo(app: INestApplicationContext): Promise<
   // Today's runsheets: optimise, dispatch, and let heroes finish part of the route.
   for (const [heroId, ids] of todayRunsheetOrders) {
     try {
+      // The ops team phoned today's recipients: confirmed parcels pass the integrity dispatch guard.
+      await db
+        .update(orders)
+        .set({ confirmationStatus: 'CONFIRMED', confirmationChannel: 'PHONE', confirmationRespondedAt: now })
+        .where(and(inArray(orders.id, ids), inArray(orders.confirmationStatus, ['NOT_REQUIRED', 'PENDING', 'NO_RESPONSE'])));
       const rs = await runsheets.create({ courierId: heroId, date: todayStr, orderIds: ids }, staff, meta);
       const runsheetId = (rs as { id: string }).id;
       await runsheets.optimize(runsheetId, staff);

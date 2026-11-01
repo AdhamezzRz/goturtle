@@ -43,7 +43,7 @@ export class IntegrityReportsService {
       this.db
         .select({ status: deliveryAttempts.disputeStatus, n: count() })
         .from(deliveryAttempts)
-        .where(and(ne(deliveryAttempts.disputeStatus, 'NONE'), or(eq(deliveryAttempts.disputeStatus, 'DISPUTED'), gte(deliveryAttempts.disputedAt, d30))))
+        .where(and(ne(deliveryAttempts.disputeStatus, 'NONE'), or(eq(deliveryAttempts.disputeStatus, 'DISPUTED'), gte(deliveryAttempts.disputedAt, d30), and(eq(deliveryAttempts.disputeStatus, 'CONFIRMED_BY_CUSTOMER'), gte(deliveryAttempts.createdAt, d30)))))
         .groupBy(deliveryAttempts.disputeStatus),
       this.rto(d30, now),
       this.rto(d60, d30),
