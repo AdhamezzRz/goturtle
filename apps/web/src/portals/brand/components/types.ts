@@ -303,6 +303,8 @@ export interface Settlement {
 }
 
 export interface SettlementDetail extends Settlement {
+  /** Wallet movements behind adjustmentsCents (early payouts, advance recoveries, claims …). */
+  adjustmentLines?: import('@/features/money/ops/SettlementAdjustments').AdjustmentLine[];
   brand: { id: string; code: string; name: string; settlementCycle: string; payoutMethod: string | null; payoutDetails: Record<string, string> | null; legalName: string | null; taxId: string | null };
   lines: Array<{
     id: string; trackingNumber: string; brandReference: string | null; status: OrderStatus; recipientName: string; codAmountCents: number;

@@ -10,6 +10,7 @@ import { Button, Card, DataTable, EmptyState, ErrorState, Input, PageHeader, Ske
 import { Money, Row } from '../components/common';
 import type { SettlementDetail } from '../components/types';
 import './i18n';
+import { SettlementAdjustments } from '@/features/money/ops/SettlementAdjustments';
 
 const SETTLEMENT_TONE = { DRAFT: 'info', APPROVED: 'progress', PAID: 'success', CANCELLED: 'neutral' } as const;
 type Line = SettlementDetail['lines'][number];
@@ -98,6 +99,8 @@ export default function SettlementDetailPage() {
           {s.status !== 'PAID' && <p className="mt-4 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-800 dark:bg-sky-950 dark:text-sky-200">{t(`brand.settlement.hint.${s.status}`)}</p>}
         </Card>
       </div>
+
+      <SettlementAdjustments lines={s.adjustmentLines} totalCents={s.adjustmentsCents} />
 
       <div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
