@@ -253,7 +253,7 @@ function Checkout({ code, link, onPlaced }: { code: string; link: PublicLink; on
         <div className="mx-auto flex max-w-[560px] items-center gap-3 sm:max-w-none">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-ink-500">{link.paymentMethod === 'COD' ? t('intake.olp.payOnDelivery') : t('intake.olp.prepaid')}</p>
-            <p className="ltr text-start font-display text-2xl font-extrabold text-ink-900 dark:text-white">{money(toPay)}</p>
+            <p className="font-display text-2xl font-extrabold text-ink-900 dark:text-white"><span className="ltr">{money(toPay)}</span></p>
             {quote.data && quote.data.shippingCents > 0 && <p className="text-[11px] text-ink-500">{t('intake.olp.inclShipping', { fee: money(quote.data.shippingCents) })}</p>}
           </div>
           <Button type="submit" size="xl" loading={submit.isPending} icon={<PackageCheck className="h-5 w-5" />} className="shrink-0">{t('intake.olp.place')}</Button>
@@ -285,17 +285,17 @@ function ProductCard({ link }: { link: PublicLink }) {
         )}
         <div className="min-w-0">
           <p className="truncate text-sm text-white/80">{link.brand.name}</p>
-          <h1 className="font-display text-xl font-extrabold leading-tight">{link.title}</h1>
+          <h1 dir="auto" className="text-start font-display text-xl font-extrabold leading-tight">{link.title}</h1>
         </div>
       </div>
       <div className="p-5">
-        {link.description && <p className="mb-4 whitespace-pre-line text-sm text-ink-600 dark:text-ink-300">{link.description}</p>}
+        {link.description && <p dir="auto" className="mb-4 whitespace-pre-line text-start text-sm text-ink-600 dark:text-ink-300">{link.description}</p>}
         <ul className="divide-y divide-ink-100 dark:divide-ink-800">
           {link.items.map((it, i) => (
             <li key={i} className="flex items-center justify-between gap-3 py-2.5">
               <span className="flex min-w-0 items-center gap-2">
                 <span className="grid h-7 min-w-7 shrink-0 place-items-center rounded-lg bg-ink-100 px-1.5 text-xs font-bold text-ink-700 dark:bg-ink-800 dark:text-ink-200">{num(it.quantity)}×</span>
-                <span className="truncate text-sm font-medium text-ink-800 dark:text-ink-100">{it.name}</span>
+                <span dir="auto" className="truncate text-sm font-medium text-ink-800 dark:text-ink-100">{it.name}</span>
               </span>
               <span className="ltr shrink-0 text-sm font-semibold text-ink-900 dark:text-white">{money(it.quantity * it.priceCents)}</span>
             </li>

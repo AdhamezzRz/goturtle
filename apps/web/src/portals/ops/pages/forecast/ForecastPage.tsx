@@ -9,7 +9,7 @@ import { cn } from '@/lib/cn';
 import { useQueryState } from '@/lib/hooks';
 import { cairoToday, dateOnly, num } from '@/lib/format';
 import { errorMessage, useI18n } from '@/i18n';
-import { Badge, Button, Card, DataTable, EmptyState, ErrorState, KpiCard, Modal, PageHeader, Select, Skeleton, type Column } from '@/components/ui';
+import { Badge, Button, Card, DataTable, EmptyState, ErrorState, KpiCard, Modal, PageHeader, Pagination, Select, Skeleton, type Column } from '@/components/ui';
 import { RequirePermission, useHubs } from '@/portals/ops/components/opsb';
 import { Segmented } from '@/portals/ops/components/opsa/ui';
 import { ForecastChart } from '@/features/intake/forecast/ForecastChart';
@@ -23,6 +23,9 @@ const addDays = (d: string, n: number) => {
   return x.toISOString().slice(0, 10);
 };
 const weekStart = (d: string) => addDays(d, -new Date(`${d}T00:00:00Z`).getUTCDay());
+const PAGE = 25;
+/** "Sun 2 Nov" — compact Cairo day label for dense tables. */
+const shortDay = (d: string, locale: string) => new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`));
 
 /** Demand forecast vs actuals, staffing gaps per hub / shift template, events and backtest accuracy. */
 export default function ForecastPage() {
@@ -34,10 +37,10 @@ export default function ForecastPage() {
 }
 
 function Inner() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { can } = useAuth();
   const today = cairoToday();
-  const [s, setS] = useQueryState({ hubId: '', horizon: '14', past: '14', gaps: '' });
+  const [s, setS] = useQueryState({ hubId: '', horizon: '14', past: '14', gaps: '', page: '1' });
   const hubs = useHubs();
   const from = addDays(today, -Number(s.past));
   const to = addDays(today, Number(s.horizon));
@@ -51,10 +54,13 @@ function Inner() {
   const d = q.data;
   const next7 = useMemo(() => (d ? d.days.filter((x) => x.date > today && x.date <= addDays(today, 7)).reduce((sum, x) => sum + x.forecast, 0) : 0), [d, today]);
   const staffing = d?.staffing;
-  const rows = (staffing?.rows ?? []).filter((r) => !s.gaps || r.gap < 0);
+  const allRows = (staffing?.rows ?? []).filter((r) => !s.gaps || r.gap < 0);
+  const pages = Math.max(1, Math.ceil(allRows.length / PAGE));
+  const page = Math.min(pages, Math.max(1, Number(s.page) || 1));
+  const rows = allRows.slice((page - 1) * PAGE, page * PAGE);
 
   const columns: Column<StaffingRow>[] = [
-    { key: 'date', header: t('common.date'), cell: (r) => <span className="text-sm font-medium">{dateOnly(`${r.date}T12:00:00Z`)}</span> },
+    { key: 'date', header: t('common.date'), cell: (r) => <span className="whitespace-nowrap text-sm font-medium">{shortDay(r.date, locale)}</span> },
     { key: 'hub', header: t('common.hub'), cell: (r) => <span className="text-sm">{r.hubName ?? t('intake.fc.network')}</span> },
     { key: 'tpl', header: t('intake.fc.shift'), cell: (r) => (r.templateId ? <div><p className="text-sm">{r.templateName}</p><p className="ltr text-start text-xs text-ink-500">{r.startTime}–{r.endTime}</p></div> : <Badge tone="warning">{t('intake.fc.noTemplate')}</Badge>) },
     { key: 'orders', header: t('intake.fc.orders'), align: 'end', cell: (r) => <span className="text-sm">{num(r.forecastOrders)}</span> },
@@ -84,16 +90,16 @@ function Inner() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Select className="sm:w-56" aria-label={t('common.hub')} value={s.hubId} onChange={(e) => setS({ hubId: e.target.value })} placeholder={t('intake.fc.allHubs')} options={(hubs.data ?? []).map((h) => ({ value: h.id, label: h.name }))} />
-            <Segmented size="sm" value={s.horizon} onChange={(v) => setS({ horizon: v })} options={[{ value: '7', label: t('intake.fc.next', { n: 7 }) }, { value: '14', label: t('intake.fc.next', { n: 14 }) }, { value: '28', label: t('intake.fc.next', { n: 28 }) }]} />
-            <Segmented size="sm" value={s.past} onChange={(v) => setS({ past: v })} options={[{ value: '14', label: t('intake.fc.past', { n: 14 }) }, { value: '28', label: t('intake.fc.past', { n: 28 }) }, { value: '56', label: t('intake.fc.past', { n: 56 }) }]} />
+            <Segmented size="sm" value={s.horizon} onChange={(v) => setS({ horizon: v })} options={[{ value: '7', label: t('intake.fc.next', { n: num(7) }) }, { value: '14', label: t('intake.fc.next', { n: num(14) }) }, { value: '28', label: t('intake.fc.next', { n: num(28) }) }]} />
+            <Segmented size="sm" value={s.past} onChange={(v) => setS({ past: v })} options={[{ value: '14', label: t('intake.fc.past', { n: num(14) }) }, { value: '28', label: t('intake.fc.past', { n: num(28) }) }, { value: '56', label: t('intake.fc.past', { n: num(56) }) }]} />
           </div>
           {d && <p className="text-xs text-ink-500">{t('intake.fc.model', { weeks: num(d.history.weeksUsed), from: dateOnly(`${d.history.from}T12:00:00Z`) })}</p>}
         </div>
       </Card>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label={t('intake.fc.k.next7')} value={d ? num(Math.round(next7)) : '—'} hint={t('intake.fc.k.next7Hint')} icon={<TrendingUp className="h-5 w-5" />} />
-        <KpiCard label={t('intake.fc.k.trend')} value={d ? `${d.model.slopePerWeek >= 0 ? '+' : ''}${num(d.model.slopePerWeek)}` : '—'} hint={t('intake.fc.k.trendHint')} icon={d && d.model.slopePerWeek < 0 ? <TrendingDown className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />} tone="sky" />
+        <KpiCard label={t('intake.fc.k.trend')} value={d ? <span className="ltr">{`${d.model.slopePerWeek >= 0 ? '+' : ''}${num(d.model.slopePerWeek)}`}</span> : '—'} hint={t('intake.fc.k.trendHint')} icon={d && d.model.slopePerWeek < 0 ? <TrendingDown className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />} tone="sky" />
         <KpiCard label={t('intake.fc.k.accuracy')} value={acc.data?.accuracy == null ? '—' : `${num(acc.data.accuracy)}%`} hint={acc.data?.mape == null ? t('intake.fc.k.noBacktest') : t('intake.fc.k.mape', { mape: num(acc.data.mape), cov: num(acc.data.intervalCoverage ?? 0) })} icon={<Gauge className="h-5 w-5" />} tone="violet" />
         <KpiCard label={t('intake.fc.k.gaps')} value={staffing ? num(staffing.summary.understaffedDays) : '—'} hint={staffing ? t('intake.fc.k.gapsHint', { n: num(Math.max(0, -staffing.summary.gap)) }) : undefined} icon={<Users className="h-5 w-5" />} tone={staffing && staffing.summary.understaffedDays > 0 ? 'red' : 'turtle'} />
       </div>
@@ -128,10 +134,11 @@ function Inner() {
             onRetry={() => q.refetch()}
             dense
             empty={<EmptyState icon={<Users className="h-7 w-7" />} title={s.gaps ? t('intake.fc.noGaps') : t('intake.fc.noStaffing')} description={s.gaps ? undefined : t('intake.fc.noStaffingHint')} />}
+            footer={pages > 1 ? <Pagination page={page} totalPages={pages} total={allRows.length} onPage={(n) => setS({ page: String(n) })} /> : undefined}
             mobileCard={(r) => (
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold">{dateOnly(`${r.date}T12:00:00Z`)} · {r.hubName ?? t('intake.fc.network')}</p>
+                  <p className="text-sm font-semibold">{shortDay(r.date, locale)} · {r.hubName ?? t('intake.fc.network')}</p>
                   <p className="text-xs text-ink-500">{r.templateName ?? t('intake.fc.noTemplate')}{r.startTime ? <span className="ltr"> · {r.startTime}–{r.endTime}</span> : null} · {t('intake.fc.ordersN', { n: num(r.forecastOrders) })}</p>
                   <p className="text-xs">{t('intake.fc.recommended')}: <b>{num(r.recommended)}</b> · {t('intake.fc.scheduled')}: <b>{num(r.scheduled)}</b></p>
                 </div>

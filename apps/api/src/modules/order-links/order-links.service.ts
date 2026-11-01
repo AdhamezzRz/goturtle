@@ -12,7 +12,7 @@ import { offsetOf, paginate } from '../../common/pagination';
 import { brandScope, principalUserId, type Principal } from '../../common/principal';
 import type { ActorContext } from '../../common/actor';
 import type { RequestMetaInfo } from '../../common/decorators';
-import { likeEscape } from '../../db/helpers';
+import { likeEscape, withDeadlockRetry } from '../../db/helpers';
 import { config } from '../../config';
 import { NetworkService } from '../network/network.service';
 import { PricingService } from '../pricing/pricing.service';
@@ -265,7 +265,8 @@ export class OrderLinksService {
     input.brandReference = `LINK-${link.code}-${n}`;
     let created;
     try {
-      created = await this.intake.create(input, BUYER_ACTOR(dto.name.trim().slice(0, 150), link.brandId));
+      // Buyers of a viral link order at the same moment: a deadlock victim is rolled back and simply retried.
+      created = await withDeadlockRetry(() => this.intake.create(input, BUYER_ACTOR(dto.name.trim().slice(0, 150), link.brandId)));
     } catch (err) {
       await this.db.update(orderLinks).set({ usesCount: sql`greatest(${orderLinks.usesCount} - 1, 0)` }).where(eq(orderLinks.id, link.id));
       throw err;

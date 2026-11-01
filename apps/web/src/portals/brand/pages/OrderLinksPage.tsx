@@ -10,7 +10,7 @@ import { api, type Paginated } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/cn';
 import { useQueryState } from '@/lib/hooks';
-import { dateOnly, dateTime, money, num, parseEgp } from '@/lib/format';
+import { dateOnly, dateTime, money, num, parseEgp, pct } from '@/lib/format';
 import { errorMessage, useI18n } from '@/i18n';
 import {
   Badge, Button, Card, Checkbox, ConfirmDialog, Drawer, EmptyState, ErrorState, Field, Input, KpiCard, Menu, Modal, PageHeader, QrCode, Select, Skeleton,
@@ -54,10 +54,10 @@ export default function OrderLinksPage() {
         subtitle={t('intake.links.subtitle')}
         actions={<Button icon={<Plus className="h-4 w-4" />} disabled={!create.allowed} title={create.reason || undefined} onClick={() => setEdit('new')}>{t('intake.links.new')}</Button>}
       />
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label={t('intake.links.kpi.open')} value={num(totals.open)} icon={<Link2 className="h-5 w-5" />} />
         <KpiCard label={t('intake.links.kpi.orders')} value={num(totals.orders)} icon={<ShoppingBag className="h-5 w-5" />} tone="sky" />
-        <KpiCard label={t('intake.links.kpi.delivered')} value={num(totals.delivered)} hint={totals.orders ? `${Math.round((totals.delivered / totals.orders) * 100)}%` : undefined} icon={<CheckCircle2 className="h-5 w-5" />} tone="violet" />
+        <KpiCard label={t('intake.links.kpi.delivered')} value={num(totals.delivered)} hint={totals.orders ? pct(totals.delivered / totals.orders, 0) : undefined} icon={<CheckCircle2 className="h-5 w-5" />} tone="violet" />
         <KpiCard label={t('intake.links.kpi.cod')} value={money(totals.cod, { compact: true })} icon={<TrendingUp className="h-5 w-5" />} tone="sand" />
       </div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -88,7 +88,7 @@ export default function OrderLinksPage() {
                     <Badge tone={AVAIL_TONE[l.availability]} dot>{t(`intake.links.avail.${l.availability}`)}</Badge>
                     <code className="ltr rounded-md bg-ink-100 px-1.5 py-0.5 font-mono text-xs text-ink-700 dark:bg-ink-800 dark:text-ink-200">{l.code}</code>
                   </div>
-                  <h3 className="mt-2 line-clamp-2 font-semibold text-ink-900 dark:text-white">{l.title}</h3>
+                  <h3 dir="auto" className="mt-2 line-clamp-2 text-start font-semibold text-ink-900 dark:text-white">{l.title}</h3>
                   <p className="mt-0.5 text-xs text-ink-500">{t('intake.links.nItems', { n: num(l.items.reduce((s, i) => s + i.quantity, 0)) })} · {l.paymentMethod === 'COD' ? t('intake.links.cod') : t('intake.links.prepaid')}</p>
                 </div>
                 <Menu
@@ -101,7 +101,7 @@ export default function OrderLinksPage() {
                   ]}
                 />
               </div>
-              <p className="ltr mt-4 text-start font-display text-2xl font-bold text-ink-900 dark:text-white">{money(l.paymentMethod === 'COD' ? l.codAmountCents : l.itemsTotalCents)}</p>
+              <p className="mt-4 font-display text-2xl font-bold text-ink-900 dark:text-white"><span className="ltr">{money(l.paymentMethod === 'COD' ? l.codAmountCents : l.itemsTotalCents)}</span></p>
               <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-ink-50 p-3 text-center dark:bg-ink-800/50">
                 <div><dt className="text-[11px] text-ink-500">{t('intake.links.uses')}</dt><dd className="font-semibold">{num(l.usesCount)}{l.maxUses ? <span className="text-ink-400">/{num(l.maxUses)}</span> : null}</dd></div>
                 <div><dt className="text-[11px] text-ink-500">{t('intake.links.delivered')}</dt><dd className="font-semibold">{num(l.stats.delivered)}</dd></div>

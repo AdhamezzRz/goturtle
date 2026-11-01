@@ -25,7 +25,7 @@ export function PartnerCustody({ partner }: { partner: Partner }) {
   const c = q.data;
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label={t('intake.pt.k.custody')} value={money(c.custodyCents)} hint={t('intake.pt.k.custodyHint')} icon={<Wallet className="h-5 w-5" />} tone="sand" />
         <KpiCard label={t('intake.pt.k.fees')} value={money(c.feesPayableCents)} hint={t('intake.pt.k.feesHint')} icon={<Receipt className="h-5 w-5" />} tone="violet" />
         <KpiCard label={t('intake.pt.k.net')} value={money(c.netOwedToUsCents)} hint={t('intake.pt.k.netHint')} icon={<Scale className="h-5 w-5" />} tone={c.netOwedToUsCents >= 0 ? 'turtle' : 'red'} />

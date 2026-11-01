@@ -92,7 +92,7 @@ export function MarketplaceConnectors() {
             <button key={p} type="button" disabled={!isOwner} onClick={() => setConnect(p)} className="flex items-center gap-3 rounded-2xl border-2 border-ink-100 p-3 text-start transition hover:border-turtle-400 disabled:cursor-not-allowed disabled:opacity-60 dark:border-ink-800">
               <Logo p={p} size="sm" />
               <span className="min-w-0">
-                <span className="block truncate font-semibold text-ink-900 dark:text-white">{MARKETPLACES[p].label}</span>
+                <span className="block break-words text-sm font-semibold text-ink-900 dark:text-white">{MARKETPLACES[p].label}</span>
                 <span className="flex items-center gap-1 text-xs text-turtle-700 dark:text-turtle-400"><Plus className="h-3 w-3" />{t('intake.mk.connect')}</span>
               </span>
             </button>

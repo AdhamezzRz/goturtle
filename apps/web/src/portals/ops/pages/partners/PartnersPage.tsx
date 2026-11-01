@@ -72,7 +72,7 @@ function Inner() {
         subtitle={t('intake.pt.subtitle')}
         actions={manage && <Button icon={<Plus className="h-4 w-4" />} onClick={() => setEdit('new')}>{t('intake.pt.new')}</Button>}
       />
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label={t('intake.pt.k.partners')} value={num(partners.filter((p) => p.isActive).length)} icon={<Handshake className="h-5 w-5" />} />
         <KpiCard label={t('intake.pt.k.withPartners')} value={num(totals.active)} icon={<Truck className="h-5 w-5" />} tone="sky" />
         <KpiCard label={t('intake.pt.k.custody')} value={money(totals.custody, { compact: true })} icon={<Wallet className="h-5 w-5" />} tone="sand" />

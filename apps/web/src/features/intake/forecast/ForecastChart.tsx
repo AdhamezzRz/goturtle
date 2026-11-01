@@ -16,7 +16,7 @@ export function ForecastChart({ days, today, events, height = 320 }: { days: For
   const theme = useChartTheme();
   const actualColor = theme.categorical[0];
   const forecastColor = theme.categorical[1];
-  const data = useMemo(() => days.map((d) => ({ date: d.date, actual: d.actual, forecast: d.forecast, base: d.lower, band: Math.max(0, d.upper - d.lower) })), [days]);
+  const data = useMemo(() => days.map((d) => ({ date: d.date, actual: d.partial ? null : d.actual, forecast: d.forecast, base: d.lower, band: Math.max(0, d.upper - d.lower) })), [days]);
   const short = (d: string) => new Intl.DateTimeFormat(dir === 'rtl' ? 'ar-EG' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`));
   return (
     <div>
@@ -30,7 +30,7 @@ export function ForecastChart({ days, today, events, height = 320 }: { days: For
       />
       <div style={{ height }} dir="ltr" role="img" aria-label={t('intake.fc.chartLabel')}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }} barCategoryGap="20%">
+          <ComposedChart data={data} margin={{ top: 22, right: 8, bottom: 0, left: -12 }} barCategoryGap="20%">
             <CartesianGrid vertical={false} stroke={theme.grid} />
             <XAxis dataKey="date" tickFormatter={short} tick={theme.tick} axisLine={{ stroke: theme.axis }} tickLine={false} minTickGap={16} reversed={dir === 'rtl'} />
             <YAxis tick={theme.tick} axisLine={false} tickLine={false} allowDecimals={false} width={44} orientation={dir === 'rtl' ? 'right' : 'left'} />
