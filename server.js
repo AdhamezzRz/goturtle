@@ -68,13 +68,15 @@ function serveDiagnostics(kind, details) {
   const title = TITLES[kind] || TITLES.STARTUP_FAILED;
   const hint = HINTS[kind] || HINTS.STARTUP_FAILED;
   const items = (details || []).map((d) => `<li><code>${escapeHtml(d)}</code></li>`).join('');
-  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GoTurtle — ${escapeHtml(title)}</title>
-<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7f9;color:#1f2430;margin:0;display:grid;place-items:center;min-height:100vh}
-.card{background:#fff;max-width:620px;margin:24px;padding:32px;border-radius:18px;box-shadow:0 12px 32px -8px rgba(16,24,40,.18)}h1{margin:0 0 4px;font-size:22px}
-.tag{display:inline-block;background:#fef0c7;color:#923a0e;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-bottom:14px}
-p{line-height:1.6}code{background:#eceef2;border-radius:6px;padding:2px 6px}ul{padding-inline-start:20px}small{color:#667491}</style></head>
-<body><div class="card"><div class="tag">🐢 GoTurtle · ${escapeHtml(kind)}</div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(hint)}</p>${items ? `<ul>${items}</ul>` : ''}
-<small>This page is shown instead of the app because startup failed. Details are in the runtime log. Fix the issue and redeploy/restart.</small></div></body></html>`;
+  const arch = '<svg viewBox="0 0 200 200" width="22" height="22" aria-hidden="true"><path fill="#DBE64C" d="M4.44 180.03V107.54A95.56 95.56 0 0 1 195.56 107.54V180.03Q195.56 188.03 187.56 188.03H178.69Q170.69 188.03 170.69 180.03V107.54A70.69 70.69 0 0 0 29.31 107.54V180.03Q29.31 188.03 21.31 188.03H12.44Q4.44 188.03 4.44 180.03Z"/></svg>';
+  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#00804C"><title>GoTurtle — ${escapeHtml(title)}</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#F6F8EC;color:#080C19;margin:0;display:grid;place-items:center;min-height:100vh}
+.card{background:#fff;max-width:620px;margin:24px;border-radius:20px;overflow:hidden;box-shadow:0 18px 40px -12px rgba(8,12,25,.18)}.head{background:#00804C;color:#fff;padding:18px 28px;display:flex;align-items:center;gap:10px;font-weight:700}
+.bar{height:4px;background:#DBE64C}.body{padding:28px}h1{margin:0 0 4px;font-size:22px}
+.tag{display:inline-block;background:#DBE64C;color:#02291a;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-inline-start:auto}
+p{line-height:1.6}code{background:#eceef3;border-radius:6px;padding:2px 6px}ul{padding-inline-start:20px}small{color:#677189}</style></head>
+<body><div class="card"><div class="head">${arch}<span>GoTurtle</span><span class="tag">${escapeHtml(kind)}</span></div><div class="bar"></div><div class="body"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(hint)}</p>${items ? `<ul>${items}</ul>` : ''}
+<small>This page is shown instead of the app because startup failed. Details are in the runtime log. Fix the issue and redeploy/restart.</small></div></div></body></html>`;
 
   const server = http.createServer((req, res) => {
     const body = { status: 'error', error: kind, title, hint, details: details || [] };

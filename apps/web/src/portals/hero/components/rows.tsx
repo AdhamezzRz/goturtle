@@ -24,7 +24,7 @@ export function SeqBubble({ seq, tone, size = 'md' }: { seq: number | null; tone
       className={cn(
         'grid shrink-0 place-items-center rounded-full font-display font-extrabold tabular',
         size === 'lg' ? 'h-14 w-14 text-2xl' : 'h-10 w-10 text-base',
-        tone === 'open' && 'bg-violet-600 text-white',
+        tone === 'open' && 'bg-turtle-600 text-lime-300',
         tone === 'done' && 'bg-turtle-100 text-turtle-700 dark:bg-turtle-950 dark:text-turtle-300',
         tone === 'failed' && 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
         tone === 'other' && 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300',
@@ -43,7 +43,7 @@ export function StopRow({ stop, highlight }: { stop: TodayStop; highlight?: bool
       to={`/hero/stops/${stop.orderId}`}
       className={cn(
         'flex items-center gap-3 rounded-2xl border bg-white p-3 shadow-card transition active:scale-[.99] dark:bg-ink-900',
-        highlight ? 'border-violet-300 ring-2 ring-violet-200 dark:border-violet-700 dark:ring-violet-900' : 'border-ink-100 dark:border-ink-800',
+        highlight ? 'border-turtle-300 ring-2 ring-lime-300/70 dark:border-turtle-700 dark:ring-lime-300/30' : 'border-ink-100 dark:border-ink-800',
         !stop.isOpen && 'opacity-75',
       )}
     >
@@ -51,7 +51,7 @@ export function StopRow({ stop, highlight }: { stop: TodayStop; highlight?: bool
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate font-bold text-ink-900 dark:text-white">{stop.recipientName}</p>
-          {stop.deliveryOtpRequired && stop.isOpen && <KeyRound className="h-4 w-4 shrink-0 text-violet-600" aria-label={t('hero.stop.otp')} />}
+          {stop.deliveryOtpRequired && stop.isOpen && <KeyRound className="h-4 w-4 shrink-0 text-turtle-600" aria-label={t('hero.stop.otp')} />}
         </div>
         <p className="truncate text-sm text-ink-500">{stop.address}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">

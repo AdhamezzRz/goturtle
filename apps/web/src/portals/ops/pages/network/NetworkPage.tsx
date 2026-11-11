@@ -17,7 +17,7 @@ import type { CityRow, ZoneRow } from '../../components/opsa/types';
 import { GeoTab, HubsTab, TesterTab } from './NetworkTabs';
 import './i18n';
 
-export const TIER_COLORS: Record<string, string> = { A: '#0e9158', B: '#2a78d6', C: '#eb6834', D: '#6250d6' };
+export const TIER_COLORS: Record<string, string> = { A: '#00804C', B: '#2a78d6', C: '#eb6834', D: '#6250d6' };
 
 export default function NetworkPage() {
   const { t } = useI18n();
@@ -202,7 +202,7 @@ function ZoneDrawer({ zone, cities, onClose }: { zone: ZoneRow | null; cities: C
         <p className="text-xs text-ink-500">{t('ops.network.pickOnMap')}</p>
         <Field label={t('ops.network.keywords')} hint={t('ops.network.keywordsHint')}>{(id) => <TagInput id={id} value={v.keywords} onChange={(k) => set('keywords', k)} />}</Field>
         {Number.isFinite(lat) && Number.isFinite(lng) && v.centerLat && v.centerLng && (
-          <OpsMap markers={[]} circles={[{ id: 'z', center: [lat, lng], radius: 1600, color: TIER_COLORS[v.tier] ?? '#0e9158', active: true }]} height={200} fitKey={`${lat},${lng}`} flyTo={[lat, lng]} />
+          <OpsMap markers={[]} circles={[{ id: 'z', center: [lat, lng], radius: 1600, color: TIER_COLORS[v.tier] ?? '#00804C', active: true }]} height={200} fitKey={`${lat},${lng}`} flyTo={[lat, lng]} />
         )}
       </fieldset>
       <ConfirmDialog open={del} onClose={() => setDel(false)} onConfirm={() => remove.mutate()} loading={remove.isPending} danger title={t('ops.network.deleteTitle', { name: zone?.code ?? '' })} description={t('ops.network.deleteDesc')} confirmLabel={t('action.delete')} />

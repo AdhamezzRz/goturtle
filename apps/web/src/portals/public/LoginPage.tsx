@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react';
+import type { CSSProperties } from 'react';
+import { ARCH_CENTERLINE } from '@/components/brand/geometry';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, Phone, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -51,22 +53,24 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-turtle-800 via-turtle-900 to-ink-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <Logo light />
+      <div className="relative hidden overflow-hidden bg-turtle-600 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        {/* Brand book p.5: deep green, lime wordmark. The arch draws itself behind the copy. */}
+        <svg viewBox="0 0 200 200" className="pointer-events-none absolute -bottom-24 -end-24 h-[34rem] w-[34rem]" fill="none" aria-hidden>
+          <path d={ARCH_CENTERLINE} pathLength={1} stroke="#DBE64C" strokeOpacity={0.16} strokeWidth={24.87} strokeDasharray="1" className="animate-arch-in motion-reduce:animate-none" style={{ ['--arch-len' as string]: '1' } as CSSProperties} />
+        </svg>
+        <Logo light size="xl" className="relative z-10" />
         <div className="relative z-10 max-w-md">
-          <h2 className="font-display text-4xl font-extrabold leading-tight">{t('app.tagline')}</h2>
-          <p className="mt-4 text-turtle-100/80">{t('login.pitch')}</p>
+          <h2 className="animate-rise font-display text-4xl font-semibold leading-tight tracking-tight">{t('app.tagline')}</h2>
+          <p className="mt-4 animate-rise text-lg text-white/80 [animation-delay:120ms]">{t('login.pitch')}</p>
         </div>
-        <div className="relative z-10 grid grid-cols-3 gap-4 text-sm">
-          {[['25', t('login.zones')], ['4', t('login.hubs')], ['24/7', t('login.tracking')]].map(([v, l]) => (
-            <div key={l} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-              <p className="font-display text-2xl font-bold">{v}</p>
-              <p className="text-turtle-100/80">{l}</p>
+        <div className="relative z-10 grid grid-cols-3 gap-3 text-sm">
+          {[['25', t('login.zones')], ['4', t('login.hubs')], ['24/7', t('login.tracking')]].map(([v, l], i) => (
+            <div key={l} className="animate-rise rounded-2xl bg-turtle-800/50 p-4 ring-1 ring-white/10 backdrop-blur" style={{ animationDelay: `${200 + i * 80}ms` }}>
+              <p className="font-display text-3xl font-semibold text-lime-300">{v}</p>
+              <p className="text-white/75">{l}</p>
             </div>
           ))}
         </div>
-        <div className="pointer-events-none absolute -end-24 -top-24 h-96 w-96 rounded-full bg-turtle-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -start-16 h-96 w-96 rounded-full bg-sand-400/10 blur-3xl" />
       </div>
 
       <div className="flex flex-col">
@@ -94,7 +98,7 @@ export default function LoginPage() {
               <Link to="/track" className="font-semibold text-turtle-700 hover:underline">{t('portal.customer')} {dir === 'rtl' ? '←' : '→'}</Link>
             </p>
             {showDemo && (
-              <Card className="mt-8 bg-turtle-50/60 dark:bg-ink-900">
+              <Card className="mt-8 bg-cream dark:bg-ink-900">
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-turtle-800 dark:text-turtle-300"><Sparkles className="h-4 w-4" />{t('auth.demo')}</p>
                 <div className="grid gap-1.5">
                   {DEMO.map((d) => (

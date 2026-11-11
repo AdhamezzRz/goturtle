@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { Wordmark } from '@/components/brand';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Printer } from 'lucide-react';
@@ -57,12 +58,9 @@ export function AwbLabelCard({ l }: { l: AwbLabel }) {
   return (
     <div className="label-sheet mx-auto flex aspect-[2/3] w-full max-w-[4in] flex-col overflow-hidden rounded-lg border-2 border-ink-900 bg-white text-ink-950 print:h-[6in] print:w-[4in] print:max-w-none print:rounded-none" dir="ltr">
       <div className="flex items-center justify-between border-b-2 border-ink-900 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <img src="/turtle.svg" alt="" className="h-7 w-7" />
-          <div className="leading-tight">
-            <p className="text-sm font-extrabold">GoTurtle</p>
-            <p className="text-[10px] text-ink-600">goturtle.co</p>
-          </div>
+        <div className="leading-tight">
+          <Wordmark className="h-7 text-black" title="GoTurtle" />
+          <p className="mt-0.5 text-[10px] font-medium tracking-wide text-ink-600">goturtle.co</p>
         </div>
         <div className="text-end">
           <p className="font-mono text-3xl font-black leading-none tracking-tight">{l.zone.code.split('-').slice(1).join('-') || l.zone.code}</p>

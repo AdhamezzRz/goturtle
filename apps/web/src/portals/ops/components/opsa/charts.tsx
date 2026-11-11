@@ -6,9 +6,10 @@ import { useIsDark } from './ui';
  * Chart tokens (validated reference palette; status colours are reserved for
  * delivery outcomes and never reused as a plain series colour).
  */
-export const STATUS_COLORS = { good: '#0ca30c', warning: '#fab219', serious: '#ec835a', critical: '#d03b3b' } as const;
-const CATEGORICAL_LIGHT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
-const CATEGORICAL_DARK = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
+export const STATUS_COLORS = { good: '#0d9458', warning: '#fab219', serious: '#ec835a', critical: '#d03b3b' } as const;
+// Brand green leads; leaf green and the rest stay distinguishable (colour-blind safe ordering kept).
+const CATEGORICAL_LIGHT = ['#00804C', '#eb6834', '#2a78d6', '#eda100', '#e87ba4', '#74C465', '#6250d6', '#e34948'];
+const CATEGORICAL_DARK = ['#33ab71', '#d95926', '#3987e5', '#c98500', '#d55181', '#9bd48b', '#9085e9', '#e66767'];
 export const SEQ_BLUE = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
 
 export function useChartTheme() {

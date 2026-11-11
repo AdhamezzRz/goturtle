@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArchTile } from '@/components/brand';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Clock, KeyRound, MapPin, Navigation, Phone, Play, Route, Sparkles, Store, Zap } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -164,10 +165,10 @@ function NextStopCard({ orderId, seq }: { orderId: string; seq: number | null })
   if (!s) return <Skeleton className="mt-4 h-56 rounded-3xl" />;
   const nav = s.mapsUrl ?? s.approximateMapsUrl ?? directionsLink(s.address.lat, s.address.lng, s.address.line);
   return (
-    <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-violet-800 text-white shadow-pop">
+    <div className="mt-4 overflow-hidden relative rounded-3xl bg-gradient-to-br from-ink-900 to-ink-950 text-white shadow-pop ring-1 ring-lime-300/25">
       <Link to={`/hero/stops/${s.id}`} className="block p-4 pb-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-bold uppercase tracking-wide">{t('hero.today.nextStop')}</span>
+          <span className="rounded-full bg-lime-300 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-turtle-950">{t('hero.today.nextStop')}</span>
           {s.eta && (
             <span className="flex items-center gap-1 text-xs font-semibold text-white/85">
               <Clock className="h-3.5 w-3.5" /> {t('hero.eta')} <span className="ltr">{timeOnly(s.eta)}</span>
@@ -175,7 +176,7 @@ function NextStopCard({ orderId, seq }: { orderId: string; seq: number | null })
           )}
         </div>
         <div className="mt-3 flex items-start gap-3">
-          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white font-display text-2xl font-extrabold text-violet-700">{seq ?? '·'}</span>
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-lime-300 font-display text-2xl font-extrabold text-turtle-900">{seq ?? '·'}</span>
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-xl font-bold">{s.recipient.name}</p>
             <p className="line-clamp-2 text-sm text-white/85">{s.address.line}</p>
@@ -193,11 +194,11 @@ function NextStopCard({ orderId, seq }: { orderId: string; seq: number | null })
           </div>
         </div>
       </Link>
-      <div className="grid grid-cols-2 gap-px bg-white/15">
-        <a href={telLink(s.recipient.phone)} className="flex h-14 items-center justify-center gap-2 bg-violet-800/60 font-bold active:bg-violet-900">
+      <div className="grid grid-cols-2 gap-px bg-white/10">
+        <a href={telLink(s.recipient.phone)} className="flex h-14 items-center justify-center gap-2 bg-white/[.06] font-bold active:bg-white/10">
           <Phone className="h-5 w-5" /> {t('action.call')}
         </a>
-        <a href={nav} target="_blank" rel="noopener noreferrer" className={cn('flex h-14 items-center justify-center gap-2 bg-violet-800/60 font-bold active:bg-violet-900', !nav && 'pointer-events-none opacity-50')}>
+        <a href={nav} target="_blank" rel="noopener noreferrer" className={cn('flex h-14 items-center justify-center gap-2 bg-turtle-600 font-bold active:bg-turtle-700', !nav && 'pointer-events-none opacity-50')}>
           <Navigation className="h-5 w-5" /> {t('action.navigate')}
         </a>
       </div>
@@ -276,7 +277,7 @@ function NoTasks({ dash }: { dash: Dashboard | undefined }) {
   });
   return (
     <div className="mt-6 flex flex-col items-center rounded-3xl bg-white px-6 py-10 text-center shadow-card dark:bg-ink-900">
-      <div className="grid h-20 w-20 place-items-center rounded-full bg-turtle-50 text-4xl dark:bg-turtle-950">🐢</div>
+      <ArchTile className="h-20 w-20 rounded-[30%] shadow-lg shadow-turtle-600/25" />
       <p className="mt-4 font-display text-xl font-bold text-ink-900 dark:text-white">{t('hero.today.emptyTitle')}</p>
       <p className="mt-1 max-w-xs text-sm text-ink-500">{offline ? t('hero.today.emptyOffline') : t('hero.today.emptyOnline')}</p>
       {offline && !asked && (

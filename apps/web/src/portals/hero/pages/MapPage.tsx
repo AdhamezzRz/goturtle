@@ -84,10 +84,10 @@ export default function MapPage() {
 
       <div className="mt-3 flex flex-wrap items-center gap-3 px-1 text-xs font-semibold text-ink-600 dark:text-ink-300">
         <Legend color="#6d28d9" label={t('hero.map.pending')} />
-        <Legend color="#19b36e" label={t('hero.map.done')} />
+        <Legend color="#74C465" label={t('hero.map.done')} />
         <Legend color="#dc2626" label={t('hero.map.failed')} />
         <Legend color="#0284c7" label={t('hero.map.pickup')} />
-        <Legend color="#0e9158" label={t('hero.map.you')} ring />
+        <Legend color="#00804C" label={t('hero.map.you')} ring />
       </div>
       {unlocated > 0 && <p className="mt-2 px-1 text-xs text-ink-500">{t('hero.map.unlocated', { n: unlocated })}</p>}
 

@@ -7,22 +7,36 @@ export default {
       fontFamily: {
         sans: ['Inter', 'Cairo', 'system-ui', 'sans-serif'],
         arabic: ['Cairo', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['"Plus Jakarta Sans"', 'Inter', 'Cairo', 'sans-serif'],
+        // Geometric, rounded terminals like the wordmark; covers Latin and Arabic.
+        display: ['"Readex Pro"', 'Inter', 'Cairo', 'sans-serif'],
       },
       colors: {
-        // GoTurtle brand: shell green
+        // GoTurtle brand (go turtle Logo.pdf): deep green #00804C is turtle-600.
         turtle: {
-          50: '#effdf5', 100: '#d8f9e6', 200: '#b3f1cf', 300: '#7de4b0', 400: '#41ce8a',
-          500: '#19b36e', 600: '#0e9158', 700: '#0d7349', 800: '#0f5b3d', 900: '#0e4b34', 950: '#03291c',
+          50: '#ecf8f1', 100: '#d0efdc', 200: '#a3dfbd', 300: '#6bc897', 400: '#33ab71', 500: '#0d9458',
+          600: '#00804C', 700: '#006a3f', 800: '#045434', 900: '#06452c', 950: '#02291a',
         },
+        // Leaf green #74C465 (leaf-400)
+        leaf: {
+          50: '#f2f9ef', 100: '#e0f2da', 200: '#c2e5b6', 300: '#9bd48b', 400: '#74C465', 500: '#55a946',
+          600: '#418735', 700: '#35692d', 800: '#2d5428', 900: '#264724', 950: '#11260f',
+        },
+        // Lime #DBE64C (lime-300) — highlights on green / ink, never as text on white.
+        lime: {
+          50: '#fbfde9', 100: '#f5f9c7', 200: '#ecf292', 300: '#DBE64C', 400: '#c8d42f', 500: '#a8b71e',
+          600: '#839015', 700: '#636e16', 800: '#4f5717', 900: '#434a19', 950: '#242903',
+        },
+        // Cream #F6F8EC — warm brand surface
+        cream: { DEFAULT: '#F6F8EC', 50: '#fbfcf6', 100: '#F6F8EC', 200: '#eaeed6', 300: '#d9e0b8' },
         // Cash / COD accent
         sand: {
           50: '#fffaeb', 100: '#fef0c7', 200: '#fde08a', 300: '#fcc94d', 400: '#fbb324',
           500: '#f5930b', 600: '#d96d06', 700: '#b44b09', 800: '#923a0e', 900: '#78300f',
         },
+        // Ink: cool navy neutrals ending in the brand ink #080C19
         ink: {
-          50: '#f6f7f9', 100: '#eceef2', 200: '#d5d9e2', 300: '#b0b8c9', 400: '#8592ab', 500: '#667491',
-          600: '#515d77', 700: '#424b61', 800: '#394152', 900: '#1f2430', 950: '#13161e',
+          50: '#f5f6f9', 100: '#eceef3', 200: '#d6dae3', 300: '#b1b8c8', 400: '#8791a8', 500: '#677189',
+          600: '#515a71', 700: '#40485d', 800: '#2a3144', 900: '#161c2d', 950: '#080C19',
         },
       },
       boxShadow: {
@@ -34,8 +48,16 @@ export default {
         'fade-in': { from: { opacity: 0 }, to: { opacity: 1 } },
         'slide-up': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
         pulse2: { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.45 } },
+        'arch-draw': { '0%': { strokeDashoffset: 'var(--arch-len)' }, '55%,70%': { strokeDashoffset: '0' }, '100%': { strokeDashoffset: 'calc(var(--arch-len) * -1)' } },
+        'arch-in': { from: { strokeDashoffset: 'var(--arch-len)' }, to: { strokeDashoffset: '0' } },
+        rise: { from: { opacity: 0, transform: 'translateY(18px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
       },
-      animation: { 'fade-in': 'fade-in .15s ease-out', 'slide-up': 'slide-up .2s ease-out', pulse2: 'pulse2 1.6s ease-in-out infinite' },
+      animation: {
+        'fade-in': 'fade-in .15s ease-out', 'slide-up': 'slide-up .2s ease-out', pulse2: 'pulse2 1.6s ease-in-out infinite',
+        'arch-draw': 'arch-draw 1.8s cubic-bezier(.65,0,.35,1) infinite', 'arch-in': 'arch-in 1.1s cubic-bezier(.65,0,.35,1) both',
+        rise: 'rise .7s cubic-bezier(.2,.7,.2,1) both', float: 'float 5s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

@@ -331,7 +331,7 @@ export function Gauge({ value, size = 160, label, sublabel }: { value: number; s
   const v = Math.max(0, Math.min(100, value));
   const r = 42;
   const c = Math.PI * r;
-  const color = v >= 75 ? '#0ca30c' : v >= 50 ? '#e0a106' : '#d03b3b';
+  const color = v >= 75 ? '#0d9458' : v >= 50 ? '#e0a106' : '#d03b3b';
   return (
     <div className="flex flex-col items-center" style={{ width: size }}>
       <svg viewBox="0 0 100 58" width={size} height={size * 0.58} role="img" aria-label={`${v}/100`}>

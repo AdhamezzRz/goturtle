@@ -371,16 +371,33 @@ export function renderTemplate(name: TemplateName, locale: Locale | string | nul
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-export function emailHtml(title: string, text: string, locale: Locale): string {
+/** Brand palette (go turtle Logo.pdf). */
+const BRAND = { green: '#00804C', lime: '#DBE64C', cream: '#F6F8EC', ink: '#080C19', leaf: '#74C465' } as const;
+
+/**
+ * Branded transactional email: deep-green header with the lime wordmark (PNG — mail clients
+ * block SVG), cream canvas, ink text. The logo is served by the app itself from APP_URL.
+ */
+export function emailHtml(title: string, text: string, locale: Locale, baseUrl: string | undefined = process.env.APP_URL): string {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const base = (baseUrl ?? '').replace(/\/+$/, '');
   const paragraphs = escapeHtml(text)
     .split(/\n{2,}/)
-    .map((p) => `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#1E8E5A">$1</a>')}</p>`)
+    .map((p) => `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color:${BRAND.green};font-weight:600">$1</a>`)}</p>`)
     .join('');
+  const logo = base
+    ? `<img src="${escapeHtml(base)}/identity/wordmark-lime.png" width="132" height="43" alt="go turtle" style="display:block;border:0;height:43px;width:132px">`
+    : `<span style="font-size:24px;font-weight:700;color:${BRAND.lime};letter-spacing:-.5px">go turtle</span>`;
+  const footer = locale === 'ar' ? 'جو تيرتل · توصيل لحد الباب في القاهرة الكبرى' : 'GoTurtle · Last-mile delivery across Greater Cairo';
   return [
-    `<!doctype html><html lang="${locale}" dir="${dir}"><body style="margin:0;background:#f4f6f5;font-family:Tahoma,Arial,sans-serif">`,
-    `<div style="max-width:560px;margin:24px auto;background:#fff;border-radius:12px;padding:28px;color:#1d2b24;font-size:15px;line-height:1.6" dir="${dir}">`,
-    `<h2 style="margin:0 0 16px;font-size:20px;color:#1E8E5A">${escapeHtml(title)}</h2>${paragraphs}`,
+    `<!doctype html><html lang="${locale}" dir="${dir}"><body style="margin:0;background:${BRAND.cream};font-family:'Segoe UI',Tahoma,Arial,sans-serif">`,
+    `<div style="max-width:560px;margin:24px auto;border-radius:16px;overflow:hidden;background:#fff;border:1px solid #e7eadb" dir="${dir}">`,
+    `<div style="background:${BRAND.green};padding:22px 28px" dir="ltr">${logo}</div>`,
+    `<div style="height:4px;background:${BRAND.lime};font-size:0;line-height:0">&nbsp;</div>`,
+    `<div style="padding:28px;color:${BRAND.ink};font-size:15px;line-height:1.65">`,
+    `<h2 style="margin:0 0 16px;font-size:20px;color:${BRAND.ink}">${escapeHtml(title)}</h2>${paragraphs}`,
+    `</div>`,
+    `<div style="padding:16px 28px;background:${BRAND.cream};color:#677189;font-size:12px">${footer}</div>`,
     `</div></body></html>`,
   ].join('');
 }

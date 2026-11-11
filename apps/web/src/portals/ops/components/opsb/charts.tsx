@@ -4,7 +4,7 @@ import { money } from '@/lib/format';
 import { useI18n } from '@/i18n';
 
 /** Chart palette (validated against light & dark surfaces): brand green for revenue, sand for cost. */
-export const CHART = { revenue: '#0e9158', cost: '#d96d06', neutral: '#8592ab' };
+export const CHART = { revenue: '#00804C', cost: '#d96d06', neutral: '#8592ab' };
 
 export function useDarkMode() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));

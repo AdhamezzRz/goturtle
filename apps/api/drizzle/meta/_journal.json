@@ -15,6 +15,13 @@
       "when": 1793488906915,
       "tag": "0001_v1_1_integrity_money_intake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1794500000000,
+      "tag": "0002_brand_identity",
+      "breakpoints": true
     }
   ]
 }

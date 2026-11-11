@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ArchLoader } from '@/components/brand';
 import { AlertTriangle, Inbox, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
 import { ORDER_STATUS_TONE, type OrderStatus, type StatusTone } from '@goturtle/shared';
 import { cn } from '@/lib/cn';
@@ -122,7 +123,7 @@ export function PageLoader() {
   const { t } = useI18n();
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-ink-500">
-      <Spinner className="h-7 w-7" />
+      <ArchLoader className="h-11 w-11" label={t('common.loading')} />
       <span className="text-sm">{t('common.loading')}</span>
     </div>
   );

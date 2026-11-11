@@ -64,6 +64,7 @@ export default function BrandApp() {
   const pending = me?.brand?.status === 'PENDING';
   return (
     <AppShell
+      accent="ink"
       nav={nav}
       title={me?.brand?.name ?? t('portal.brand')}
       profilePath="/brand/profile"

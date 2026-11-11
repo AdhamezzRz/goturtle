@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { ArchProgress } from '@/components/brand';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -100,7 +101,7 @@ export default function TrackingPage() {
           <div className="space-y-4 lg:max-w-2xl"><Skeleton className="h-64 w-full rounded-3xl" /><Skeleton className="h-40 w-full rounded-3xl" /><Skeleton className="h-56 w-full rounded-3xl" /></div>
         )
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div className="space-y-4">
           <StatusHero d={d} />
           <TrackingIntegrityCards tn={tn} />
@@ -194,7 +195,7 @@ export default function TrackingPage() {
 // ------------------------------------------------------------------ hero
 
 function StatusHero({ d }: { d: TrackingData }) {
-  const { t, locale } = useI18n();
+  const { t, locale, dir } = useI18n();
   const ex = d.exception ? d.status : null;
   const warn = d.status === 'FAILED_ATTEMPT' || d.status === 'RESCHEDULED' || d.status === 'ON_HOLD';
   const tone = d.status === 'DELIVERED' ? 'done' : ex === 'CANCELLED' || ex === 'RETURNED' ? 'muted' : ex ? 'danger' : warn ? 'warn' : 'go';
@@ -216,7 +217,7 @@ function StatusHero({ d }: { d: TrackingData }) {
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink-100 dark:bg-ink-900 dark:ring-ink-800">
       <div className={cn('relative bg-gradient-to-br px-5 pb-6 pt-5 text-white', bg)}>
-        <div className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-lime-300/20 blur-2xl" />
         <div className="relative flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             {d.brand.logoUrl ? <img src={d.brand.logoUrl} alt="" className="h-8 w-8 rounded-lg bg-white object-cover" /> : <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/20 text-sm font-bold">{d.brand.name.slice(0, 1)}</span>}
@@ -225,8 +226,21 @@ function StatusHero({ d }: { d: TrackingData }) {
           <span className="ltr shrink-0 rounded-lg bg-white/15 px-2 py-1 font-mono text-xs font-semibold tracking-wider">{d.trackingNumber}</span>
         </div>
         <div className="relative mt-6 flex items-start gap-4">
-          <span className={cn('grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30', d.status === 'OUT_FOR_DELIVERY' && 'animate-pulse2')}><Icon className="h-7 w-7" /></span>
-          <div className="min-w-0">
+          {ex ? (
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30"><Icon className="h-7 w-7" /></span>
+          ) : (
+            <div className="w-24 shrink-0 sm:w-28" title={t('customer.track.progress')}>
+              <ArchProgress
+                surface="dark"
+                mirror={dir === 'rtl'}
+                tone={warn ? 'warn' : 'brand'}
+                live={d.status === 'OUT_FOR_DELIVERY'}
+                progress={d.status === 'DELIVERED' ? 1 : d.steps.length > 1 ? Math.min(d.step / (d.steps.length - 1) + (d.status === 'OUT_FOR_DELIVERY' ? 0.06 : 0), 0.94) : 0}
+                steps={d.steps.map((st, i) => ({ at: d.steps.length > 1 ? i / (d.steps.length - 1) : 0, done: st.done }))}
+              />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
             <h1 className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">{t(`customer.status.${d.status}.title`)}</h1>
             <p className="mt-1 text-sm text-white/85">{t(`customer.status.${d.status}.body`, { name: d.recipient.firstName, hero: d.hero?.firstName ?? t('common.hero'), area: locale === 'ar' ? d.destination.zone.ar : d.destination.zone.en })}</p>
             {when && <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold"><CalendarDays className="h-4 w-4" />{when}</p>}
@@ -242,13 +256,13 @@ function StatusHero({ d }: { d: TrackingData }) {
             const isWarn = current && warn;
             const last = i === d.steps.length - 1;
             return (
-              <li key={s.key} className={cn('relative flex flex-1 flex-col items-center text-center', !last && 'after:absolute after:start-1/2 after:top-[18px] after:h-1 after:w-full after:rounded-full after:content-[""]', !last && (i < d.step ? 'after:bg-turtle-500' : 'after:bg-ink-100 dark:after:bg-ink-800'))}>
+              <li key={s.key} className={cn('relative flex min-w-0 flex-1 flex-col items-center text-center', !last && 'after:absolute after:start-1/2 after:top-[18px] after:h-1 after:w-full after:rounded-full after:content-[""]', !last && (i < d.step ? 'after:bg-turtle-600' : 'after:bg-ink-100 dark:after:bg-ink-800'))}>
                 <span
                   aria-current={current ? 'step' : undefined}
                   className={cn(
                     'relative z-10 grid h-10 w-10 place-items-center rounded-full ring-4 ring-white transition dark:ring-ink-900',
-                    done && 'bg-turtle-500 text-white',
-                    current && !isWarn && 'bg-turtle-600 text-white shadow-lg shadow-turtle-600/40',
+                    done && 'bg-turtle-600 text-lime-300',
+                    current && !isWarn && 'bg-lime-300 text-turtle-900 shadow-lg shadow-lime-400/40',
                     isWarn && 'bg-amber-500 text-white',
                     !s.done && 'bg-ink-100 text-ink-400 dark:bg-ink-800',
                   )}

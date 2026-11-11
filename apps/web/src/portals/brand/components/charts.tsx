@@ -8,13 +8,13 @@ import { cn } from '@/lib/cn';
  */
 export const SERIES = {
   created: '#0284c7',
-  delivered: '#0e9158',
+  delivered: '#00804C',
   returned: '#7c3aed',
   failed: '#d97706',
 } as const;
 
 /** Sequential (magnitude) single hue: GoTurtle green. */
-export const SEQ = ['#d8f9e6', '#b3f1cf', '#7de4b0', '#41ce8a', '#19b36e', '#0e9158', '#0d7349'];
+export const SEQ = ['#d0efdc', '#a3dfbd', '#6bc897', '#33ab71', '#74C465', '#00804C', '#006a3f'];
 
 export const axisProps = {
   tick: { fill: '#8592ab', fontSize: 11 },

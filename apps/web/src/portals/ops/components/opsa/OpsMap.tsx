@@ -13,14 +13,14 @@ import { cn } from '@/lib/cn';
 export const CAIRO: [number, number] = [30.0444, 31.2357];
 
 export const MAP_COLORS = {
-  online: '#0e9158',
+  online: '#00804C',
   busy: '#6d28d9',
   break: '#f5930b',
   offline: '#8592ab',
   order: '#2a78d6',
   urgent: '#dc2626',
   hub: '#13161e',
-  done: '#19b36e',
+  done: '#74C465',
   failed: '#d03b3b',
   pickup: '#0284c7',
 } as const;
@@ -63,7 +63,7 @@ function iconFor(m: OpsMarker): L.DivIcon {
   } else if (m.type === 'hub') {
     icon = L.divIcon({
       className: 'gt-pin',
-      html: '<svg width="30" height="30" viewBox="0 0 30 30"><rect x="2" y="2" width="26" height="26" rx="7" fill="#13161e" stroke="#fff" stroke-width="2"/><g transform="translate(6 6) scale(.75)" fill="none" stroke="#7de4b0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11H3zM9 20v-6h6v6"/></g></svg>',
+      html: '<svg width="30" height="30" viewBox="0 0 30 30"><rect x="2" y="2" width="26" height="26" rx="7" fill="#13161e" stroke="#fff" stroke-width="2"/><g transform="translate(6 6) scale(.75)" fill="none" stroke="#6bc897" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11H3zM9 20v-6h6v6"/></g></svg>',
       iconSize: [30, 30],
       iconAnchor: [15, 15],
       popupAnchor: [0, -14],
@@ -145,7 +145,7 @@ export function OpsMap({
           </Circle>
         ))}
         {routes.map((r) => (
-          <Polyline key={r.id} positions={r.positions} pathOptions={{ color: r.color ?? '#0e9158', weight: 4, opacity: 0.8, dashArray: r.dashed ? '8 8' : undefined }} />
+          <Polyline key={r.id} positions={r.positions} pathOptions={{ color: r.color ?? '#00804C', weight: 4, opacity: 0.8, dashArray: r.dashed ? '8 8' : undefined }} />
         ))}
         {markers.map((m) => (
           <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m)} eventHandlers={m.onClick ? { click: m.onClick } : undefined} zIndexOffset={m.type === 'hero' ? 500 : m.type === 'hub' ? 300 : 0}>

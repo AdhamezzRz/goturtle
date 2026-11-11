@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { assertValidConfig, config } from './config';
-import { existsSync, statSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { Logger, ValidationPipe, VersioningType, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -87,13 +87,29 @@ function serveWeb(app: NestExpressApplication) {
     log.warn('Web build not found (apps/web/dist) — only the API is served. Run `npm run build` at the repo root.');
     return;
   }
+  // A missing hashed asset is a 404 (never the HTML shell — browsers would reject it as script/style).
   app.use('/assets', express.static(join(dist, 'assets'), { immutable: true, maxAge: '1y', index: false }));
-  app.use(express.static(dist, { index: false, maxAge: '1h' }));
-  const indexHtml = join(dist, 'index.html');
+  app.use('/assets', (_req: Request, res: Response) => res.status(404).type('text/plain').send('Not found'));
+  // redirect:false — a public folder must never turn a portal route (/brand, /hero …) into a /dir/ redirect.
+  app.use(express.static(dist, { index: false, redirect: false, maxAge: '1h' }));
+  // Social previews (WhatsApp, Facebook, X) need absolute image URLs: rewrite them once with APP_URL.
+  const base = config.appUrl.replace(/\/+$/, '');
+  const indexPath = join(dist, 'index.html');
+  let cached: { mtimeMs: number; html: string } | null = null;
+  const indexHtml = () => {
+    const { mtimeMs } = statSync(indexPath);
+    if (!cached || cached.mtimeMs !== mtimeMs) {
+      const html = readFileSync(indexPath, 'utf8')
+        .replace(/(property="og:image"|name="twitter:image") content="\//g, `$1 content="${base}/`)
+        .replace('<meta property="og:type"', `<meta property="og:url" content="${base}/" />\n    <meta property="og:type"`);
+      cached = { mtimeMs, html };
+    }
+    return cached.html;
+  };
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.method !== 'GET' || req.path.startsWith('/api') || !req.accepts('html')) return next();
     res.setHeader('Cache-Control', 'no-cache');
-    res.sendFile(indexHtml);
+    res.type('html').send(indexHtml());
   });
   log.log(`Serving portals from ${dist}`);
 }

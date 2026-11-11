@@ -20,15 +20,15 @@ export const TILE_ATTRIBUTION: string =
 export type MarkerKind = 'hero' | 'hero-idle' | 'hero-offline' | 'order' | 'order-urgent' | 'hub' | 'pickup' | 'home' | 'done';
 
 const COLORS: Record<MarkerKind, string> = {
-  hero: '#0e9158',
+  hero: '#00804C',
   'hero-idle': '#f5930b',
   'hero-offline': '#8592ab',
   order: '#6d28d9',
   'order-urgent': '#dc2626',
   hub: '#13161e',
   pickup: '#0284c7',
-  home: '#0e9158',
-  done: '#19b36e',
+  home: '#00804C',
+  done: '#74C465',
 };
 
 const ICONS: Partial<Record<MarkerKind, string>> = {
@@ -104,7 +104,7 @@ export function LiveMap({
     <div className={cn('relative isolate z-0 overflow-hidden rounded-2xl border border-ink-100 dark:border-ink-800', className)} style={{ height }}>
       <MapContainer center={center as LatLngExpression} zoom={zoom} scrollWheelZoom className="h-full w-full" attributionControl>
         <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} maxZoom={19} />
-        {route && route.length > 1 && <Polyline positions={route} pathOptions={{ color: '#0e9158', weight: 4, opacity: 0.75, dashArray: '8 8' }} />}
+        {route && route.length > 1 && <Polyline positions={route} pathOptions={{ color: '#00804C', weight: 4, opacity: 0.75, dashArray: '8 8' }} />}
         {points.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]} icon={pinIcon(p.kind, p.label)} eventHandlers={p.onClick ? { click: p.onClick } : undefined}>
             {p.title && <Tooltip direction="top" offset={[0, -24]}>{p.title}</Tooltip>}

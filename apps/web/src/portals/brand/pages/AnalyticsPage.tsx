@@ -214,7 +214,7 @@ function Heatmap({ values }: { values: number[][] }) {
                   const v = values[di]?.[h] ?? 0;
                   const a = v === 0 ? 0 : 0.25 + 0.75 * (v / max);
                   return (
-                    <td key={h} title={`${label} ${h}:00 · ${v}`} className="h-6 min-w-[14px] rounded-[4px] bg-ink-100 dark:bg-ink-800" style={a ? { background: `rgba(14, 145, 88, ${a.toFixed(2)})` } : undefined} />
+                    <td key={h} title={`${label} ${h}:00 · ${v}`} className="h-6 min-w-[14px] rounded-[4px] bg-ink-100 dark:bg-ink-800" style={a ? { background: `rgba(0, 128, 76, ${a.toFixed(2)})` } : undefined} />
                   );
                 })}
               </tr>
@@ -224,7 +224,7 @@ function Heatmap({ values }: { values: number[][] }) {
       </div>
       <div className="mt-3 flex items-center justify-end gap-1 text-[11px] text-ink-500">
         {t('brand.an.less')}
-        {[0.25, 0.45, 0.65, 0.85, 1].map((a) => <span key={a} className="h-3 w-3 rounded-sm" style={{ background: `rgba(14, 145, 88, ${a})` }} />)}
+        {[0.25, 0.45, 0.65, 0.85, 1].map((a) => <span key={a} className="h-3 w-3 rounded-sm" style={{ background: `rgba(0, 128, 76, ${a})` }} />)}
         {t('brand.an.more')}
       </div>
     </div>

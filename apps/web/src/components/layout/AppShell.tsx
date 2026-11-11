@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useOnline } from '@/lib/hooks';
 import { useI18n } from '@/i18n';
 import { Logo } from './Brand';
+import { ArchMark } from '@/components/brand';
 import { LanguageToggle, NotificationBell, ProfileMenu, ThemeToggle } from './Controls';
 
 export interface NavItem {
@@ -36,22 +37,25 @@ export function AppShell({ nav, children, title, profilePath, notificationsPath,
   const { t } = useI18n();
   useEffect(() => setOpen(false), [location.pathname]);
 
+  // Brand book p.5: deep green surface, lime mark. The Brand portal uses the ink variant.
+  const surface = accent === 'turtle' ? 'bg-gradient-to-b from-turtle-700 via-turtle-800 to-turtle-950' : 'bg-gradient-to-b from-ink-900 to-ink-950';
+  const watermark = <ArchMark className="pointer-events-none absolute -bottom-16 -end-20 h-72 w-72 text-white/[.04]" />;
   const sidebar = (
-    <nav className="flex h-full flex-col">
+    <nav className="relative flex h-full flex-col">
       <div className="flex h-16 items-center justify-between px-5">
         <Logo light />
-        <button className="text-ink-300 lg:hidden" onClick={() => setOpen(false)} aria-label="close menu">
+        <button className="text-white/70 lg:hidden" onClick={() => setOpen(false)} aria-label="close menu">
           <X className="h-5 w-5" />
         </button>
       </div>
-      <div className="px-5 pb-2 text-[11px] font-semibold uppercase tracking-widest text-turtle-300/80">{title}</div>
+      <div className="px-5 pb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-lime-300/90">{title}</div>
       <div className="flex-1 space-y-5 overflow-y-auto px-3 pb-6 scrollbar-none">
         {nav.map((group, gi) => {
           const items = group.items.filter((i) => !i.permission || can(i.permission));
           if (!items.length) return null;
           return (
             <div key={gi}>
-              {group.label && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-400">{group.label}</p>}
+              {group.label && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">{group.label}</p>}
               <ul className="space-y-0.5">
                 {items.map((item) => (
                   <li key={item.to}>
@@ -61,7 +65,7 @@ export function AppShell({ nav, children, title, profilePath, notificationsPath,
                       className={({ isActive }) =>
                         cn(
                           'group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
-                          isActive ? 'bg-white/10 text-white shadow-inner' : 'text-ink-300 hover:bg-white/5 hover:text-white',
+                          isActive ? 'bg-lime-300 font-semibold text-turtle-950 shadow-[0_6px_18px_-8px_rgba(219,230,76,.7)]' : 'text-white/70 hover:bg-white/[.07] hover:text-white',
                         )
                       }
                     >
@@ -76,17 +80,17 @@ export function AppShell({ nav, children, title, profilePath, notificationsPath,
           );
         })}
       </div>
-      <div className="border-t border-white/10 px-5 py-4 text-xs text-ink-400">{t('common.poweredBy')} · v1.1</div>
+      <div className="flex items-center gap-2 border-t border-white/10 px-5 py-4 text-xs text-white/45"><ArchMark className="h-3.5 w-3.5 text-lime-300/80" />{t('common.poweredBy')} · v1.1</div>
     </nav>
   );
 
   return (
     <div className="min-h-screen lg:ps-64">
-      <aside className={cn('fixed inset-y-0 start-0 z-40 hidden w-64 lg:block', accent === 'turtle' ? 'bg-gradient-to-b from-ink-950 via-ink-950 to-turtle-950' : 'bg-ink-950')}>{sidebar}</aside>
+      <aside className={cn('fixed inset-y-0 start-0 z-40 hidden w-64 overflow-hidden lg:block', surface)}>{watermark}{sidebar}</aside>
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-ink-950/50" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 start-0 w-72 animate-fade-in bg-ink-950">{sidebar}</aside>
+          <aside className={cn('absolute inset-y-0 start-0 w-72 animate-fade-in overflow-hidden', surface)}>{watermark}{sidebar}</aside>
         </div>
       )}
       <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-ink-100 bg-white/85 px-4 backdrop-blur dark:border-ink-800 dark:bg-ink-950/80 sm:px-6">

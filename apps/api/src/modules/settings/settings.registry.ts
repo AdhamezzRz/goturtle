@@ -207,7 +207,7 @@ export const SETTINGS: { [K in SettingKey]: SettingDefinition<SettingsMap[K]> } 
   },
   branding: {
     description: 'Portal and tracking page branding',
-    defaults: { primaryColor: '#1E8E5A' },
+    defaults: { primaryColor: '#00804C' },
     fields: { primaryColor: { type: 'string', max: 7, pattern: /^#[0-9A-Fa-f]{6}$/ } },
   },
   integrity: {

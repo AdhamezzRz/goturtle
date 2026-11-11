@@ -1,6 +1,6 @@
 /* GoTurtle service worker: app-shell caching so the hero app opens instantly and survives weak 4G. */
-const CACHE = 'goturtle-shell-v1';
-const SHELL = ['/', '/hero', '/manifest.webmanifest', '/turtle.svg', '/icon-192.png'];
+const CACHE = 'goturtle-shell-v2';
+const SHELL = ['/', '/hero', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/identity/wordmark-ink.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

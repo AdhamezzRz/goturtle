@@ -41,7 +41,7 @@ registerDictionary({
   'ops.settings.f.pickupCutoffHour': { en: 'Pickup cut-off hour (Cairo)', ar: 'موعد قطع طلبات الاستلام (القاهرة)' },
   'ops.settings.f.cutoffHint': { en: 'Requests after this hour roll to the next day', ar: 'الطلبات بعد هذه الساعة تُرحّل لليوم التالي' },
   'ops.settings.f.primaryColor': { en: 'Primary colour', ar: 'اللون الأساسي' },
-  'ops.settings.colorInvalid': { en: 'Use a hex colour like #1E8E5A', ar: 'استخدم لون بصيغة #1E8E5A' },
+  'ops.settings.colorInvalid': { en: 'Use a hex colour like #00804C', ar: 'استخدم لون بصيغة #00804C' },
   'ops.settings.urlInvalid': { en: 'Must be an https:// URL or an uploaded file', ar: 'يجب أن يكون رابط https:// أو ملف مرفوع' },
   'ops.settings.contrastLow': { en: 'Low contrast with white text ({ratio}:1) — pick a darker colour', ar: 'تباين منخفض مع النص الأبيض ({ratio}:1) — اختر لوناً أغمق' },
   'ops.settings.preview': { en: 'Public preview', ar: 'معاينة عامة' },

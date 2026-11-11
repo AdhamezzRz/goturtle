@@ -4,6 +4,7 @@ import { WifiOff } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useOnline } from '@/lib/hooks';
 import { useI18n } from '@/i18n';
+import { ArchMark } from '@/components/brand';
 
 export interface HeroTab {
   to: string;
@@ -18,7 +19,7 @@ export function HeroShell({ header, tabs, children }: { header: ReactNode; tabs:
   const { t } = useI18n();
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-ink-50 dark:bg-ink-950">
-      <header className="sticky top-0 z-30 bg-gradient-to-br from-turtle-700 to-turtle-900 px-4 pb-4 pt-[max(env(safe-area-inset-top),0.75rem)] text-white shadow-md">{header}</header>
+      <header className="sticky top-0 z-30 relative overflow-hidden bg-gradient-to-br from-turtle-600 via-turtle-700 to-turtle-900 px-4 pb-4 pt-[max(env(safe-area-inset-top),0.75rem)] text-white shadow-md"><ArchMark className="pointer-events-none absolute -end-10 -top-6 h-40 w-40 text-lime-300/[.08]" /><div className="relative">{header}</div></header>
       {!online && (
         <div className="flex items-center justify-center gap-2 bg-amber-100 px-4 py-2 text-xs font-semibold text-amber-900">
           <WifiOff className="h-4 w-4" /> {t('common.offline')}
@@ -32,7 +33,7 @@ export function HeroShell({ header, tabs, children }: { header: ReactNode; tabs:
               <NavLink
                 to={tab.to}
                 end={tab.end}
-                className={({ isActive }) => cn('flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold', isActive ? 'text-turtle-700 dark:text-turtle-400' : 'text-ink-400')}
+                className={({ isActive }) => cn('relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors', isActive ? 'text-turtle-700 before:absolute before:inset-x-1/4 before:top-0 before:h-1 before:rounded-b-full before:bg-lime-300 dark:text-lime-300' : 'text-ink-400')}
               >
                 <span className="[&>svg]:h-6 [&>svg]:w-6">{tab.icon}</span>
                 {tab.label}

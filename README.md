@@ -1,4 +1,6 @@
-# 🐢 GoTurtle — Last-mile Logistics ERP for Egypt
+<p><img src="apps/web/public/identity/wordmark-green.svg" alt="go turtle" height="56"></p>
+
+# GoTurtle — Last-mile Logistics ERP for Egypt
 
 GoTurtle runs a delivery company end to end. Heroes (couriers) pick parcels up from brands, deliver them across Greater Cairo, and collect cash on delivery. Every piaster is then reconciled back to the company and settled to the brand.
 
@@ -57,7 +59,7 @@ apps/api          NestJS + Drizzle (MySQL/MariaDB) — REST API, jobs, ledger; s
 apps/web          React SPA — Ops, Brand, Hero (PWA) & Customer portals
 docs/             architecture, deployment, integrations
 ```
-More: [Architecture](docs/ARCHITECTURE.md) · [API conventions](apps/api/CONVENTIONS.md) · [Web conventions](apps/web/CONVENTIONS.md)
+More: [Brand identity](docs/BRAND.md) · [Architecture](docs/ARCHITECTURE.md) · [API conventions](apps/api/CONVENTIONS.md) · [Web conventions](apps/web/CONVENTIONS.md)
 
 ## Quality gates
 ```bash

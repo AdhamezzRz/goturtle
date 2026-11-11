@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { BrandKit } from '@/features/brand-kit/BrandKit';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Banknote, Bell, Building2, Palette, Phone, Search, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -57,7 +58,7 @@ function Inner() {
             {tab === 'company' && row<Company>('company') && <CompanyForm row={row<Company>('company')!} onDraft={onCompany} />}
             {tab === 'notifications' && row<Notifs>('notifications') && <NotificationsForm row={row<Notifs>('notifications')!} />}
             {tab === 'operations' && row<Ops>('operations') && <OperationsForm row={row<Ops>('operations')!} />}
-            {tab === 'branding' && row<Branding>('branding') && <BrandingForm row={row<Branding>('branding')!} onDraft={onBranding} />}
+            {tab === 'branding' && row<Branding>('branding') && <><BrandingForm row={row<Branding>('branding')!} onDraft={onBranding} /><BrandKit /></>}
             {tab === 'integrity' && row<IntegritySettings>('integrity') && <IntegritySettingsForm row={row<IntegritySettings>('integrity')!} />}
             {tab === 'finance' && row('finance') && <FinanceSettingsForm row={row('finance') as Parameters<typeof FinanceSettingsForm>[0]['row']} />}
             {tab === 'platform' && row<PlatformSettings>('platform') && <PlatformSettingsForm row={row<PlatformSettings>('platform')!} />}
@@ -242,7 +243,8 @@ function BrandingForm({ row, onDraft }: { row: SettingRow<Branding>; onDraft: (b
   useEffect(() => onDraft(f.values), [f.values, onDraft]);
   const valid = /^#[0-9A-Fa-f]{6}$/.test(f.values.primaryColor);
   const ratio = valid ? contrastWithWhite(f.values.primaryColor) : 0;
-  const swatches = ['#1E8E5A', '#0E9158', '#0D7349', '#1D4ED8', '#7C3AED', '#B45309', '#BE123C', '#13161E'];
+  // Brand palette first (go turtle Logo.pdf), then a few accessible alternatives.
+  const swatches = ['#00804C', '#006A3F', '#045434', '#080C19', '#1D4ED8', '#7C3AED', '#B45309', '#BE123C'];
   return (
     <FormShell group="branding" row={row as SettingRow<unknown>} dirty={f.dirty} saving={f.saving} onSave={() => f.save((b) => (/^#[0-9A-Fa-f]{6}$/.test(b.primaryColor) ? {} : { primaryColor: t('ops.settings.colorInvalid') }))} onReset={() => f.setValues(row.value)} onDefaults={() => f.setValues(row.defaults)}>
       <Field label={t('ops.settings.f.primaryColor')} error={f.errors.primaryColor}>
@@ -272,7 +274,7 @@ function PublicPreview({ draft }: { draft: { company?: Partial<Company>; brandin
     return { company: { ...base.company, ...pickPublic(draft.company) }, branding: { ...base.branding, ...draft.branding } };
   }, [q.data, draft]);
   const isDraft = !!q.data && JSON.stringify(merged) !== JSON.stringify(q.data);
-  const color = merged && /^#[0-9A-Fa-f]{6}$/.test(merged.branding.primaryColor) ? merged.branding.primaryColor : '#1E8E5A';
+  const color = merged && /^#[0-9A-Fa-f]{6}$/.test(merged.branding.primaryColor) ? merged.branding.primaryColor : '#00804C';
   return (
     <aside className="xl:sticky xl:top-20 xl:self-start">
       <Section title={t('ops.settings.preview')} subtitle={t('ops.settings.previewHint')}>

@@ -12,7 +12,7 @@ import { OpsMap } from '../../components/opsa/OpsMap';
 import type { CityRow, GovernorateRow, HubRow, ZoneRow } from '../../components/opsa/types';
 import './i18n';
 
-const TIER_COLORS: Record<string, string> = { A: '#0e9158', B: '#2a78d6', C: '#eb6834', D: '#6250d6' };
+const TIER_COLORS: Record<string, string> = { A: '#00804C', B: '#2a78d6', C: '#eb6834', D: '#6250d6' };
 
 function useNetworkInvalidate() {
   const qc = useQueryClient();
@@ -279,7 +279,7 @@ export function TesterTab() {
               <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.method')}</dt><dd className="font-semibold">{t(`ops.network.method.${r.match.method}`)}</dd></div>
               <div className="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/60"><dt className="text-xs text-ink-500">{t('ops.network.tester.matched')}</dt><dd className="truncate font-semibold">{r.match.matched}</dd></div>
             </dl>
-            <OpsMap markers={[{ id: 'c', type: 'pin', lat: r.zone.centerLat, lng: r.zone.centerLng, color: TIER_COLORS[r.zone.tier] ?? '#0e9158', title: r.zone.code }]} circles={[{ id: 'z', center: [r.zone.centerLat, r.zone.centerLng], radius: 1600, color: TIER_COLORS[r.zone.tier] ?? '#0e9158', active: true }]} height={240} fitKey={r.zone.id} flyTo={[r.zone.centerLat, r.zone.centerLng]} />
+            <OpsMap markers={[{ id: 'c', type: 'pin', lat: r.zone.centerLat, lng: r.zone.centerLng, color: TIER_COLORS[r.zone.tier] ?? '#00804C', title: r.zone.code }]} circles={[{ id: 'z', center: [r.zone.centerLat, r.zone.centerLng], radius: 1600, color: TIER_COLORS[r.zone.tier] ?? '#00804C', active: true }]} height={240} fitKey={r.zone.id} flyTo={[r.zone.centerLat, r.zone.centerLng]} />
           </div>
         ) : (
           <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">

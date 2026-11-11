@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Wordmark } from '@/components/brand';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowRight, Globe, Loader2, Moon, ShieldCheck, Smartphone, Sun } from 'lucide-react';
@@ -41,12 +42,11 @@ export function CustomerShell({ children, wide }: { children: ReactNode; wide?: 
   const { dark, toggle: toggleTheme } = useTheme();
   const settings = usePublicSettings();
   return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-ink-50 dark:bg-ink-950">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-turtle-100/80 via-turtle-50/40 to-transparent dark:from-turtle-950/70 dark:via-turtle-950/20" />
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-cream dark:bg-ink-950">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-cream via-cream/60 to-transparent dark:from-turtle-950/70 dark:via-turtle-950/20" />
       <header className="relative z-10 mx-auto flex w-full items-center justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)] sm:px-6" style={{ maxWidth: wide ? 960 : 560 }}>
         <Link to="/track" className="inline-flex items-center gap-2.5" aria-label={t('app.name')}>
-          <img src="/turtle.svg" alt="" className="h-9 w-9 rounded-xl shadow-sm" />
-          <span className="font-display text-lg font-extrabold tracking-tight text-ink-900 dark:text-white">{t('app.name')}</span>
+          <Wordmark className="h-8 text-ink-950 dark:text-white" title={t('app.name')} />
         </Link>
         <div className="flex items-center gap-1">
           <button type="button" onClick={toggle} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-ink-700 hover:bg-white/70 dark:text-ink-200 dark:hover:bg-ink-800" aria-label={t('common.language')}>
